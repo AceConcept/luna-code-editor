@@ -3,11 +3,11 @@ import { CodeEditorMock } from "@/components/CodeEditorMock";
 import { ScaledViewport } from "@/components/ScaledViewport";
 
 export const metadata: Metadata = {
-  title: "Luna",
+  title: "The extension page",
   description: "Editor shell mock",
 };
 
-export default function Home() {
+export default function ExtensionsPage() {
   return (
     <ScaledViewport>
       <CodeEditorMock />

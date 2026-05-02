@@ -2,6 +2,10 @@
   "name": "luna-base",
   "version": "0.1.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AceConcept/luna-code-editor.git"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
