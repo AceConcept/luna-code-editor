@@ -26,3 +26,175 @@ code {
   font-weight: 300;
   color: var(--white);
 }
+
+/* Extensions file-menu (#file-menu) — short class names; sizing in rem */
+.xfm-col {
+  display: flex;
+  width: 23rem;
+  flex-shrink: 0;
+  flex-direction: column;
+  background: transparent;
+}
+
+.xfm-panel {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: transparent;
+}
+
+.xfm-hdr {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: transparent;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 0;
+  font-size: 1.375rem;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.xfm-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background: transparent;
+  padding-bottom: 1rem;
+}
+
+.xfm-nav {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: transparent;
+}
+
+.xfm-ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xfm-li {
+  list-style: none;
+}
+
+.xfm-btn {
+  --xfm-hl: url("/extensions/highlights/side-menu0hl.png");
+
+  position: relative;
+  isolation: isolate;
+  appearance: none;
+  box-sizing: border-box;
+  display: flex;
+  height: 4rem;
+  min-height: 4rem;
+  width: 100%;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  border: 0;
+  background: none;
+  background-color: transparent;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  text-align: left;
+  font-size: 1.375rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #e8e8e8;
+  transition: color 0.15s ease;
+}
+
+.xfm-btn:hover,
+.xfm-btn:focus,
+.xfm-btn:active,
+.xfm-btn--on,
+.xfm-btn--on:hover,
+.xfm-btn--on:focus,
+.xfm-btn--on:active {
+  background: none;
+  background-color: transparent;
+}
+
+.xfm-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: transparent;
+  background-image: var(--xfm-hl);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.xfm-btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+.xfm-btn:hover:not(.xfm-btn--on)::before {
+  opacity: 0.5;
+}
+
+.xfm-btn--on {
+  color: #fff;
+}
+
+.xfm-btn--on::before {
+  opacity: 1;
+}
+
+.xfm-btn--on:hover::before {
+  opacity: 1;
+}
+
+.xfm-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.2);
+}
+
+.xfm-btn--on:focus-visible {
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.3);
+}
+
+.xfm-ico {
+  display: block;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  color: #e0e0e0;
+}
+
+.xfm-cap {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.375rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.xfm-dots {
+  height: 1.25rem;
+  width: 1.25rem;
+  flex-shrink: 0;
+  object-fit: contain;
+}

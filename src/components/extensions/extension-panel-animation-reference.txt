@@ -1,0 +1,202 @@
+================================================================================
+EXTENSION PANEL ANIMATION — REFERENCE (for reading / learning)
+================================================================================
+Source of truth in the repo:
+  src/components/extensions/InstalledExtensionsPanel.tsx
+
+Below is the animation-related logic only (constants, state machine, JSX that
+drives motion). Line numbers match the file as of this document’s creation.
+
+--------------------------------------------------------------------------------
+1) TIMING CONSTANTS (lines 7–10)
+--------------------------------------------------------------------------------
+
+/** List column contracts/expands on click (matches `duration-300` / 300ms CSS). */
+const LIST_CONTRACT_MS = 300;
+/** Detail panel fades in after list contraction finishes. */
+const PANEL_FADE_MS = 280;
+
+
+--------------------------------------------------------------------------------
+2) STATE + TIMERS (lines 161–167, 169–174, 176–217, 219)
+--------------------------------------------------------------------------------
+
+export function InstalledExtensionsPanel() {
+  const [layoutNarrowed, setLayoutNarrowed] = useState(false);
+  /** Panel column width: stays open while opacity fades out on close. */
+  const [panelTrackOpen, setPanelTrackOpen] = useState(false);
+  const [panelRevealed, setPanelRevealed] = useState(false);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (openTimerRef.current) clearTimeout(openTimerRef.current);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  const togglePython = useCallback(() => {
+    if (panelRevealed) {
+      if (openTimerRef.current) {
+        clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+      setPanelRevealed(false);
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
+        setPanelTrackOpen(false);
+        setLayoutNarrowed(false);
+        closeTimerRef.current = null;
+      }, PANEL_FADE_MS);
+      return;
+    }
+
+    if (layoutNarrowed) {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+        setPanelRevealed(true);
+        return;
+      }
+      if (openTimerRef.current) {
+        clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+      setLayoutNarrowed(false);
+      return;
+    }
+
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setLayoutNarrowed(true);
+    openTimerRef.current = setTimeout(() => {
+      setPanelTrackOpen(true);
+      setPanelRevealed(true);
+      openTimerRef.current = null;
+    }, LIST_CONTRACT_MS);
+  }, [layoutNarrowed, panelRevealed]);
+
+  const rowOpen = layoutNarrowed || panelTrackOpen;
+
+
+--------------------------------------------------------------------------------
+3) OPEN / CLOSE SEQUENCE (plain English)
+--------------------------------------------------------------------------------
+
+OPEN (click Python row when fully closed):
+  A) setLayoutNarrowed(true)
+     → List column style maxWidth becomes "60.5rem"
+     → CSS transition on that div: transition-[max-width] duration-300 ease-out
+  B) After LIST_CONTRACT_MS (300 ms):
+     → setPanelTrackOpen(true)  → outer detail wrapper maxWidth "43.25rem" (instant; see inline transition)
+     → setPanelRevealed(true)   → inner wrapper opacity 1 with PANEL_FADE_MS transition
+
+CLOSE (click again when panel visible):
+  A) setPanelRevealed(false) → opacity fades out over PANEL_FADE_MS
+  B) After PANEL_FADE_MS → setPanelTrackOpen(false); setLayoutNarrowed(false)
+     → Panel column maxWidth animates to 0 over LIST_CONTRACT_MS (ease-out)
+     → List column maxWidth back to "103.25rem" with the same 300 ms Tailwind transition
+
+
+--------------------------------------------------------------------------------
+4) JSX — ROW CONTAINER (gap) (lines 226–232)
+--------------------------------------------------------------------------------
+
+      <div
+        className={`box-border flex min-h-0 min-w-0 w-full shrink-0 flex-1 flex-row overflow-hidden px-[2rem] pb-[2rem] transition-[gap] duration-300 ease-out ${
+          rowOpen ? "" : "max-w-[103.25rem]"
+        }`}
+        style={{
+          gap: rowOpen ? "1rem" : "0",
+        }}
+      >
+
+
+--------------------------------------------------------------------------------
+5) JSX — LIST COLUMN (contraction / expansion) (lines 234–240)
+--------------------------------------------------------------------------------
+
+        <div
+          className={`flex min-h-0 min-w-0 flex-col overflow-hidden transition-[max-width] duration-300 ease-out motion-reduce:transition-none ${
+            layoutNarrowed ? "shrink-0" : "w-full flex-1"
+          }`}
+          style={{
+            maxWidth: layoutNarrowed ? "60.5rem" : "103.25rem",
+          }}
+        >
+
+The scrollable list lives inside this div (header + div.overflow-y-auto).
+
+
+--------------------------------------------------------------------------------
+6) JSX — DETAIL PANEL SLOT + FADE (lines 286–306)
+--------------------------------------------------------------------------------
+
+        <div
+          className={`shrink-0 overflow-hidden ${
+            panelRevealed ? "" : "pointer-events-none"
+          }`}
+          style={{
+            maxWidth: panelTrackOpen ? "43.25rem" : "0",
+            transition: `max-width ${panelTrackOpen ? 0 : LIST_CONTRACT_MS}ms ease-out`,
+          }}
+          aria-hidden={!panelRevealed}
+          inert={panelRevealed ? undefined : true}
+        >
+          <div
+            style={{
+              width: "43.25rem",
+              opacity: panelRevealed ? 1 : 0,
+              transition: `opacity ${PANEL_FADE_MS}ms ease-out`,
+            }}
+          >
+            <ExtensionDetailPanel />
+          </div>
+        </div>
+
+
+================================================================================
+MAKING THE CONTRACTION *FEEL* SLOWER WHILE STAYING @ 300 ms
+================================================================================
+Duration stays 300 ms; “feels slower” = more even motion / more visible change.
+
+1) EASING — ease-out front-loads motion
+   - ease-out: fast at the start, slow at the end → reads as “snapped then crept”.
+   - Try ease-in-out or a symmetric cubic-bezier so velocity is lower at t=0
+     Example: cubic-bezier(0.45, 0, 0.55, 1) or Tailwind ease-in-out.
+   - “Slower start” specifically: ease-in (slow start, fast end) can feel odd
+     for a close; often ease-in-out is the best tradeoff at the same 300 ms.
+
+2) ANIMATE WHAT ACTUALLY MOVES IN PX
+   - You animate max-width; visible width only changes when max-width crosses
+     below the width the flex row would otherwise assign. If the parent is
+     narrower than both caps, almost nothing moves.
+   - Path: drive an explicit width or flex-basis from measured pixels, or use
+     transform: scaleX on a wrapper (different tradeoffs), so the eye always
+     sees motion proportional to the easing curve.
+
+3) BIGGER PIXEL DELTA AT THE SAME 300 ms
+   - Same duration with a larger start→end distance increases average speed
+     in px/s but can paradoxically read as “more deliberate” if motion was
+     previously sub-pixel. Ensure the narrow target actually binds in your
+     viewport (or use % widths relative to #coding).
+
+4) OPTIONAL — SLIGHTLY LONGER DURATION
+   - True “slower” motion = more ms. If you must keep exactly 300 ms, easing +
+     animating the right property are the levers.
+
+5) OPTIONAL — STAGGER
+   - Tiny delay before max-width starts (e.g. requestAnimationFrame × 2) can
+     separate click feedback from motion; does not lengthen the 300 ms ramp
+     unless you add dead time.
+
+6) REDUCED MOTION
+   - motion-reduce:transition-none is already on the list column; respect that
+     for any new curves or durations.
+
+================================================================================
+END
+================================================================================

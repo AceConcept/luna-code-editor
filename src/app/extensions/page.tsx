@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CodeEditorMock } from "@/components/CodeEditorMock";
+import { CodeEditorExtensionsMock } from "@/components/CodeEditorExtensionsMock";
 import { ScaledViewport } from "@/components/ScaledViewport";
 
 export const metadata: Metadata = {
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function ExtensionsPage() {
   return (
     <ScaledViewport>
-      <CodeEditorMock />
+      <CodeEditorExtensionsMock />
     </ScaledViewport>
   );
 }
