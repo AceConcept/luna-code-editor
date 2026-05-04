@@ -62,24 +62,21 @@ const installedExtensions = [
   },
 ] as const;
 
-const ROW_CLASS =
-  "relative box-border h-[7.625rem] min-h-[7.625rem] w-full cursor-default overflow-hidden rounded-[0.5rem] border border-white/[0.14] bg-gradient-to-br from-[#2f2f2f]/95 to-[#232323] py-[1.15rem] pl-[1.5rem] pr-[1.35rem] font-light shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]";
-
-function FilterIcon() {
+function FilterFunnelIcon() {
   return (
     <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
+      className="extl-filter-ico"
+      viewBox="0 0 28 28"
+      width={28}
+      height={28}
       fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-white/85"
+      xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
-      <path d="M4 6h16M7 12h10M10 18h4" />
+      <path
+        d="M24.9133 7.30188L24.9045 7.31172L17.4966 15.2217V21.2909C17.497 21.5796 17.426 21.8639 17.2899 22.1184C17.1539 22.373 16.9569 22.59 16.7167 22.75L13.2167 25.0841C12.953 25.2598 12.6464 25.3605 12.3299 25.3756C12.0133 25.3907 11.6986 25.3196 11.4194 25.1698C11.1401 25.02 10.9067 24.7971 10.7442 24.5251C10.5817 24.253 10.4961 23.9419 10.4966 23.625V15.2217L3.08858 7.31172L3.07983 7.30188C2.85206 7.0512 2.70192 6.73982 2.64763 6.4055C2.59334 6.07118 2.63723 5.72829 2.77399 5.41842C2.91074 5.10855 3.13447 4.84503 3.41805 4.65982C3.70162 4.47461 4.03285 4.37567 4.37155 4.375H23.6216C23.9605 4.37503 24.2922 4.47351 24.5763 4.65848C24.8603 4.84344 25.0846 5.10693 25.2217 5.41692C25.3589 5.72691 25.4031 6.07007 25.3489 6.40469C25.2947 6.73931 25.1445 7.051 24.9166 7.30188H24.9133Z"
+        fill="currentColor"
+      />
     </svg>
   );
 }
@@ -87,14 +84,8 @@ function FilterIcon() {
 function RowDecor() {
   return (
     <>
-      <div
-        className="pointer-events-none absolute -bottom-[20%] -right-[8%] h-[10rem] w-[10rem] rounded-full border border-white/[0.06] opacity-90"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-[35%] -right-[18%] h-[11rem] w-[11rem] rounded-full border border-white/[0.04] opacity-70"
-        aria-hidden
-      />
+      <div className="extl-row-decor-a" aria-hidden />
+      <div className="extl-row-decor-b" aria-hidden />
     </>
   );
 }
@@ -107,49 +98,36 @@ function RowBody({
   return (
     <>
       <RowDecor />
-      <div className="relative flex h-full min-h-0 items-center gap-[1.15rem]">
-        <div className="flex h-[3.5rem] w-[3.5rem] shrink-0 items-center justify-center overflow-hidden bg-transparent">
+      <div className="extl-row-body">
+        <div className="extl-row-icon-wrap">
           <Image
             src={ext.iconSrc}
             alt=""
             width={56}
             height={56}
-            className="h-[3.5rem] w-[3.5rem] object-contain"
+            className="extl-row-icon-img"
             draggable={false}
             unoptimized
           />
         </div>
 
-        <div className="min-h-0 min-w-0 flex-1">
-          <h3 className="text-[1.2rem] font-light leading-tight text-white">
-            {ext.title}
-          </h3>
-          <p className="mt-[0.35rem] max-w-[42rem] text-[1.05rem] font-light leading-snug text-[#b5b5b5]">
-            {ext.description}
-          </p>
+        <div className="extl-row-text">
+          <h3 className="extl-row-heading">{ext.title}</h3>
+          <p className="extl-row-desc">{ext.description}</p>
         </div>
 
-        <div className="flex shrink-0 flex-col items-end justify-center gap-[0.35rem]">
-          <div className="flex flex-wrap items-center justify-end gap-x-[0.65rem] gap-y-1">
+        <div className="extl-row-meta">
+          <div className="extl-row-meta-line">
             {ext.updateAvailable ? (
               <>
-                <span className="flex items-center gap-[0.4rem]">
-                  <span
-                    className="h-[0.45rem] w-[0.45rem] shrink-0 rounded-full bg-[#3fb950] shadow-[0_0_6px_rgba(63,185,80,0.65)]"
-                    aria-hidden
-                  />
-                  <span className="text-[0.98rem] font-light text-[#c4c4c4]">
-                    Update Available
-                  </span>
+                <span className="extl-update-pill">
+                  <span className="extl-update-dot" aria-hidden />
+                  <span className="extl-update-label">Update Available</span>
                 </span>
-                <span className="text-[0.98rem] font-light tabular-nums text-[#8a8a8a]">
-                  {ext.version}
-                </span>
+                <span className="extl-version">{ext.version}</span>
               </>
             ) : (
-              <span className="text-[0.98rem] font-light tabular-nums text-[#8a8a8a]">
-                {ext.version}
-              </span>
+              <span className="extl-version">{ext.version}</span>
             )}
           </div>
         </div>
@@ -219,49 +197,40 @@ export function InstalledExtensionsPanel() {
   const rowOpen = layoutNarrowed || panelTrackOpen;
 
   return (
-    <section
-      className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent"
-      aria-label="Installed extensions list"
-    >
+    <section className="extl-section" aria-label="Installed extensions list">
       <div
-        className={`relative box-border flex min-h-0 min-w-0 w-full shrink-0 flex-1 flex-col overflow-hidden px-[2rem] pb-[2rem] ${
-          rowOpen ? "" : "max-w-[103.25rem]"
-        }`}
+        className={`extl-frame${rowOpen ? "" : " extl-frame--constrained"}`}
       >
         <div
-          className={`flex min-h-0 min-w-0 flex-col overflow-hidden transition-[max-width] duration-300 ease-out motion-reduce:transition-none ${
-            layoutNarrowed ? "shrink-0" : "w-full flex-1"
-          }`}
+          className={`extl-list-col${layoutNarrowed ? " extl-list-col--narrowed" : " extl-list-col--wide"}`}
           style={{
             maxWidth: layoutNarrowed ? "60.5rem" : "103.25rem",
           }}
         >
-          <header className="flex shrink-0 items-center justify-between bg-transparent pt-[1.25rem] pb-[1rem]">
-            <h2 className="text-[1.35rem] font-light tracking-tight text-white">
-              Installed Extensions
-            </h2>
+          <header className="extl-header">
+            <h2 className="extl-title">Installed Extensions</h2>
             <button
               type="button"
               aria-label="Filter extensions"
-              className="flex h-[2.25rem] w-[2.25rem] shrink-0 items-center justify-center rounded-[0.375rem] border-0 bg-transparent text-[inherit] transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              className="extl-filter-btn"
             >
-              <FilterIcon />
+              <FilterFunnelIcon />
             </button>
           </header>
 
-          <div className="min-h-0 flex-1 overflow-y-auto bg-transparent">
-            <ul className="m-0 flex w-full min-w-0 list-none flex-col gap-[0.875rem] p-0 font-light">
+          <div className="extl-scroll">
+            <ul className="extl-ul">
               {installedExtensions.map((ext) => {
                 const isPython = ext.id === "python-environments";
                 if (isPython) {
                   return (
-                    <li key={ext.id} className="list-none">
+                    <li key={ext.id} className="extl-li">
                       <button
                         type="button"
-                        className={`${ROW_CLASS} cursor-pointer appearance-none text-left transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35`}
+                        className="extl-row extl-row--btn"
                         onClick={togglePython}
                         aria-expanded={panelRevealed}
-                        aria-controls="extension-detail-python"
+                        aria-controls="extension-panel"
                       >
                         <RowBody ext={ext} />
                       </button>
@@ -269,8 +238,8 @@ export function InstalledExtensionsPanel() {
                   );
                 }
                 return (
-                  <li key={ext.id} className="list-none">
-                    <article className={ROW_CLASS} aria-label={ext.title}>
+                  <li key={ext.id} className="extl-li">
+                    <article className="extl-row" aria-label={ext.title}>
                       <RowBody ext={ext} />
                     </article>
                   </li>
@@ -281,9 +250,7 @@ export function InstalledExtensionsPanel() {
         </div>
 
         <div
-          className={`absolute inset-y-0 right-0 z-20 flex min-h-0 w-[43.25rem] min-w-0 max-w-[min(43.25rem,100%)] flex-col justify-start ${
-            panelRevealed ? "" : "pointer-events-none"
-          }`}
+          className={`extl-panel-slot${panelRevealed ? "" : " extl-panel-slot--inert"}`}
           style={{
             opacity: panelRevealed ? 1 : 0,
             transition: `opacity ${PANEL_FADE_MS}ms ease-out`,
@@ -292,7 +259,7 @@ export function InstalledExtensionsPanel() {
           aria-hidden={!panelRevealed}
           inert={panelRevealed ? undefined : true}
         >
-          <div className="min-h-0 w-full min-w-0 flex-1 overflow-y-auto">
+          <div className="extl-panel-scroll">
             <ExtensionDetailPanel />
           </div>
         </div>

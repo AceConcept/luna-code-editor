@@ -20,9 +20,9 @@ export function ScaledViewport({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-[#212121]">
+    <div className="svp-root">
       <div
-        className="flex shrink-0 flex-col"
+        className="svp-stage"
         style={{
           width: "160rem",
           height: "90rem",

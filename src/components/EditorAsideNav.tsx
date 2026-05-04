@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { EditorWorkbenchBenchPrefix } from "@/components/code-editor/EditorWorkbench";
 
 const asideItems = [
   {
@@ -32,34 +33,38 @@ const asideItems = [
   },
 ] as const;
 
-const activeBtnClass =
-  "flex h-[3.125rem] w-[3.125rem] shrink-0 items-center justify-center rounded-[0.625rem] border border-white/25 bg-white/[0.14] p-0 text-[var(--white)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.28),0_0.25rem_0.75rem_rgba(0,0,0,0.2)] backdrop-blur-md transition-[background-color,border-color,box-shadow] hover:border-white/35 hover:bg-white/[0.2] focus-visible:outline-none";
-
-const idleBtnClass =
-  "flex h-[3.125rem] w-[3.125rem] shrink-0 items-center justify-center rounded-[0.625rem] border-0 bg-transparent p-0 text-[var(--white)] transition-colors hover:bg-[#3a3a3a] focus-visible:outline-none";
-
 function itemIsActive(pathname: string, href: string) {
   return href === "/"
     ? pathname === "/"
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function EditorAsideNav() {
+export function EditorAsideNav({
+  benchClassPrefix,
+}: {
+  benchClassPrefix: EditorWorkbenchBenchPrefix;
+}) {
   const pathname = usePathname();
+  const p = benchClassPrefix;
+  const asideBtn = `${p}-aside-btn`;
+  const asideBtnActive = `${p}-aside-btn--active`;
+  const asideImg = `${p}-aside-btn-img`;
 
   return (
     <>
       {asideItems.map((item) => {
         const isActive =
           item.href !== null && itemIsActive(pathname, item.href);
-        const className = isActive ? activeBtnClass : idleBtnClass;
+        const className = isActive
+          ? `${asideBtn} ${asideBtnActive}`
+          : asideBtn;
         const img = (
           <Image
             src={item.src}
             alt=""
             width={26}
             height={26}
-            className="pointer-events-none h-[1.625rem] w-[1.625rem] object-contain"
+            className={asideImg}
             draggable={false}
             unoptimized
           />

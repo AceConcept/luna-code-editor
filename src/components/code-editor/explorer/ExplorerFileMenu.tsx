@@ -69,16 +69,13 @@ const fileTreeRowButtonSrcNestedClass = `${fileTreeRowButtonBaseClass} pl-[3.25r
 
 export function ExplorerFileMenu() {
   return (
-    <div
-      className="flex w-[23rem] shrink-0 flex-col bg-transparent"
-      aria-label="Explorer"
-    >
+    <div className="hwb-explorer-file-menu" aria-label="Explorer">
       <div
         id="file-menu"
         title="File menu"
         role="group"
         aria-label="File menu"
-        className="flex min-h-0 min-w-0 flex-1 flex-col gap-[1.5rem] bg-transparent"
+        className="hwb-explorer-file-menu-inner"
       >
         <div className="flex w-full items-center justify-between gap-[0.5rem] bg-transparent py-[1rem] pl-0 text-[1.25rem] font-light uppercase tracking-wide text-white">
           <span>Luminos</span>

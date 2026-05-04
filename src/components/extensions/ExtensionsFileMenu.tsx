@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 function ExtIconInstalled() {
   return (
     <svg
@@ -177,18 +175,6 @@ export function ExtensionsFileMenu() {
         aria-label="Extension categories"
         className="xfm-panel"
       >
-        <div className="xfm-hdr">
-          <span>Extensions</span>
-          <Image
-            src="/code-editor/folder-menu/DotsThreeOutline.svg"
-            alt=""
-            width={20}
-            height={20}
-            className="xfm-dots"
-            draggable={false}
-            unoptimized
-          />
-        </div>
         <div className="xfm-scroll">
           <ExtensionsSidebarNav />
         </div>

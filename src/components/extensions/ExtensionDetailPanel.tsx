@@ -1,185 +1,437 @@
+"use client";
+
 import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const PYTHON_ICON = "/extensions/code-icons/Component%203/Variant6.png";
+const GEAR_ICON = "/extensions/ext-panel/Gear.svg";
+const EXPAND_ICON = "/extensions/ext-panel/expand.svg";
+const STARS_ICON = "/extensions/ext-panel/stars.svg";
+const DOWNLOAD_BTN_ICON = "/extensions/ext-panel/dwnload-icon.svg";
+const DL_CARET_ICON = "/extensions/ext-panel/dl-caret.svg";
+const CLOUD_ARROW_DOWN_ICON = "/extensions/ext-panel/CloudArrowDown.svg";
+const WARNING_ICON = "/extensions/ext-panel/Warning.svg";
+const TRIPLE_DOT_ICON = "/extensions/ext-panel/triple-dot.svg";
 
 function StarRow() {
   return (
-    <div className="flex items-center gap-1 text-[#f5a623]" aria-label="4 out of 5 stars">
-      <span aria-hidden>★</span>
-      <span aria-hidden>★</span>
-      <span aria-hidden>★</span>
-      <span aria-hidden>★</span>
-      <span className="text-white/25" aria-hidden>
-        ★
-      </span>
-      <span className="ml-1 text-[0.75rem] font-light text-[#9d9d9d]">(100)</span>
+    <div className="extp-star-row" aria-label="4 out of 5 stars">
+      <Image
+        src={STARS_ICON}
+        alt=""
+        width={99}
+        height={20}
+        className="extp-star-img"
+        draggable={false}
+        unoptimized
+        aria-hidden
+      />
+      <span className="extp-star-count">(100)</span>
     </div>
   );
 }
 
-function IconBtn({ label }: { label: string }) {
+function IconBtn({ label, src }: { label: string; src: string }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded border-0 bg-transparent text-[#b0b0b0] transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-    >
-      <span className="text-[0.9rem]">⋯</span>
+    <button type="button" aria-label={label} className="extp-icon-btn">
+      <Image
+        src={src}
+        alt=""
+        width={36}
+        height={36}
+        className="extp-icon-btn-img"
+        draggable={false}
+        unoptimized
+        aria-hidden
+      />
     </button>
   );
 }
 
-/** Side panel mock: Python Environments (692×1122px design space, rem). */
+const DOWNLOAD_MS = 2800;
+const HOLD_AT_100_MS = 400;
+
+/** Side panel mock: Python Environments — width 692px (43.25rem @ 16px root), height 1122px (70.125rem). */
 export function ExtensionDetailPanel() {
+  const [downloadPct, setDownloadPct] = useState(0);
+  const [downloadActive, setDownloadActive] = useState(false);
+  const [restartModalOpen, setRestartModalOpen] = useState(false);
+  const [portalMounted, setPortalMounted] = useState(false);
+  const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    setPortalMounted(true);
+  }, []);
+
+  const closeRestartModal = useCallback(() => {
+    setRestartModalOpen(false);
+  }, []);
+
+  const clearTimers = useCallback(() => {
+    if (tickRef.current != null) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+    if (finishTimerRef.current != null) {
+      clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => clearTimers(), [clearTimers]);
+
+  useEffect(() => {
+    if (!downloadActive) return;
+
+    const started = Date.now();
+    tickRef.current = setInterval(() => {
+      const elapsed = Date.now() - started;
+      const next = Math.min(100, Math.round((elapsed / DOWNLOAD_MS) * 100));
+      setDownloadPct(next);
+      if (next >= 100 && tickRef.current != null) {
+        clearInterval(tickRef.current);
+        tickRef.current = null;
+        finishTimerRef.current = setTimeout(() => {
+          setDownloadActive(false);
+          setDownloadPct(0);
+          finishTimerRef.current = null;
+          setRestartModalOpen(true);
+        }, HOLD_AT_100_MS);
+      }
+    }, 32);
+
+    return () => {
+      clearTimers();
+    };
+  }, [downloadActive, clearTimers]);
+
+  const onDownloadClick = () => {
+    if (downloadActive) return;
+    clearTimers();
+    setDownloadPct(0);
+    setDownloadActive(true);
+  };
+
+  const restartModal =
+    portalMounted && restartModalOpen
+      ? createPortal(
+          <div
+            className="extp-restart-modal-backdrop"
+            role="presentation"
+          >
+            <div
+              className="extp-restart-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="extp-restart-modal-title"
+            >
+              <div className="extp-restart-modal-header">
+                <div className="extp-restart-modal-icon-wrap" aria-hidden>
+                  <span className="extp-restart-modal-icon-mark">!</span>
+                </div>
+                <h2 id="extp-restart-modal-title" className="extp-restart-modal-title">
+                  Download Complete
+                </h2>
+                <button
+                  type="button"
+                  className="extp-restart-modal-close"
+                  aria-label="Close"
+                  onClick={closeRestartModal}
+                >
+                  ×
+                </button>
+              </div>
+              <p className="extp-restart-modal-body">
+                Download finished. A restart of Pharecia is required to access all
+                new features.
+              </p>
+              <div className="extp-restart-modal-actions">
+                <button
+                  type="button"
+                  className="extp-restart-modal-btn extp-restart-modal-btn--primary"
+                  onClick={closeRestartModal}
+                >
+                  Restart Now
+                </button>
+                <button
+                  type="button"
+                  className="extp-restart-modal-btn extp-restart-modal-btn--secondary"
+                  onClick={closeRestartModal}
+                >
+                  Restart Later
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
+    <>
     <aside
-      id="extension-detail-python"
-      className="flex h-[70.125rem] max-h-[70.125rem] w-[43.25rem] shrink-0 flex-col overflow-hidden rounded-[0.375rem] border border-[#3c3c3c] bg-[#2d2d2d] font-light text-[#cccccc] shadow-[0_0.5rem_2rem_rgba(0,0,0,0.35)]"
-      aria-label="Extension details"
+      id="extension-panel"
+      className="extp-aside"
+      aria-label="// Window"
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-[#454545] bg-[#3c3c3c] px-3 py-2 text-[0.75rem] text-[#c8c8c8]">
-        <span className="font-mono">{"// Window"}</span>
-        <button
-          type="button"
-          aria-label="Collapse"
-          className="rounded border-0 bg-transparent px-2 text-[#aaa] hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-        >
-          ⌄
+      <div className="extp-chrome">
+        <span className="extp-chrome-title">// Window</span>
+        <button type="button" aria-label="Collapse" className="extp-collapse-btn">
+          <svg
+            className="extp-collapse-btn-svg"
+            viewBox="0 0 20 20"
+            width={20}
+            height={20}
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden
+          >
+            <path
+              d="M15.625 7.75L10 13.375L4.375 7.75"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-4 pt-4">
-        <div className="flex shrink-0 gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center border border-white/25 bg-black/30">
+      <div className="extp-body">
+        <div className="extp-hero-row">
+          <div className="extp-hero-icon-box">
             <Image
               src={PYTHON_ICON}
               alt=""
               width={48}
               height={48}
-              className="h-12 w-12 object-contain"
+              className="extp-hero-icon-img"
               draggable={false}
               unoptimized
             />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div>
-                <h2 className="text-[1.25rem] font-light leading-tight text-white">
-                  Python Environments{" "}
-                  <span className="text-[0.85rem] font-light text-[#8a8a8a]">
-                    pythonCo.
-                  </span>
+          <div className="extp-hero-main">
+            <div className="extp-hero-top">
+              <div className="extp-title-block">
+                <h2>
+                  Python Environments<span className="extp-title-publisher">pythonCo.</span>
                 </h2>
-                <div className="mt-1 flex flex-wrap items-center gap-3">
+                <div className="extp-meta-row">
                   <StarRow />
-                  <span className="flex items-center gap-1 text-[0.8rem] text-white">
-                    <span aria-hidden className="opacity-70">
-                      ⬇
-                    </span>
+                  <span className="extp-dl-stat">
+                    <Image
+                      src={CLOUD_ARROW_DOWN_ICON}
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="extp-dl-ico"
+                      draggable={false}
+                      unoptimized
+                      aria-hidden
+                    />
                     12,000,367
                   </span>
                 </div>
+                <p className="extp-lead">
+                  A performant, feature-rich language server for Python in Pharecia
+                  Code.
+                </p>
               </div>
-              <div className="flex shrink-0 gap-1">
-                <IconBtn label="Settings" />
-                <IconBtn label="Expand" />
+              <div className="extp-icon-actions">
+                <IconBtn label="Settings" src={GEAR_ICON} />
+                <IconBtn label="Expand" src={EXPAND_ICON} />
               </div>
             </div>
-            <p className="mt-2 text-[0.8rem] leading-snug text-[#b0b0b0]">
-              A performant, feature-rich language server for Python in Pharecia
-              Code.
-            </p>
           </div>
         </div>
 
-        <div className="mt-4 flex shrink-0 flex-wrap items-center gap-4">
-          <div className="flex overflow-hidden rounded-[0.25rem]">
-            <button
-              type="button"
-              className="flex items-center gap-2 border-0 bg-[#2ea043] px-4 py-2 text-[0.85rem] font-light text-white hover:bg-[#3fb950] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            >
-              <span aria-hidden>⬇</span>
-              Download Update
-            </button>
-            <button
-              type="button"
-              aria-label="Other download options"
-              className="border-0 border-l border-white/25 bg-[#2ea043] px-2 text-white hover:bg-[#3fb950] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            >
-              ⌄
-            </button>
-          </div>
-          <label className="flex cursor-pointer items-center gap-2 text-[0.8rem] text-[#ccc]">
-            <input type="checkbox" className="h-4 w-4 accent-[#0e639c]" />
-            Auto Updates
-          </label>
-        </div>
-
-        <div className="mt-4 flex shrink-0 items-stretch border border-[#454545] bg-[#252526]">
-          {(["DETAILS", "FEATURES", "CHANGELOG"] as const).map((tab, i) => (
-            <button
-              key={tab}
-              type="button"
-              className={
-                i === 0
-                  ? "relative flex-1 border-0 border-r border-[#454545] bg-transparent py-2.5 text-center text-[0.7rem] font-light tracking-wide text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/30"
-                  : "flex-1 border-0 border-r border-[#454545] bg-transparent py-2.5 text-center text-[0.7rem] font-light tracking-wide text-[#888] last:border-r-0 hover:text-[#ccc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/20"
-              }
-            >
-              {tab}
-              {i === 0 ? (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-white" />
-              ) : null}
-            </button>
-          ))}
-          <button
-            type="button"
-            aria-label="More"
-            className="w-10 shrink-0 border-0 bg-transparent text-[#888] hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/30"
+        <div className="extp-body-below">
+          <div
+            className={
+              downloadActive
+                ? "extp-actions-wrap extp-actions-wrap--downloading"
+                : "extp-actions-wrap"
+            }
           >
-            ⋮
-          </button>
-        </div>
+            <div className="extp-actions-row">
+              <div className="extp-dl-split">
+                <button
+                  type="button"
+                  className="extp-dl-primary"
+                  disabled={downloadActive}
+                  onClick={onDownloadClick}
+                >
+                  <Image
+                    src={DOWNLOAD_BTN_ICON}
+                    alt=""
+                    width={22}
+                    height={22}
+                    className="extp-dl-primary-ico"
+                    draggable={false}
+                    unoptimized
+                    aria-hidden
+                  />
+                  {downloadActive ? "Downloading" : "Download Update"}
+                </button>
+                <button
+                  type="button"
+                  aria-label="Other download options"
+                  className="extp-dl-caret-btn"
+                  disabled={downloadActive}
+                >
+                  <Image
+                    src={DL_CARET_ICON}
+                    alt=""
+                    width={22}
+                    height={22}
+                    className="extp-dl-caret-ico"
+                    draggable={false}
+                    unoptimized
+                    aria-hidden
+                  />
+                </button>
+              </div>
+              <label className="extp-auto-label">
+                <span className="extp-cb-wrap">
+                  <input type="checkbox" className="extp-cb" />
+                  <span className="extp-cb-tick" aria-hidden>
+                    ✓
+                  </span>
+                </span>
+                Auto Updates
+              </label>
+            </div>
+            {downloadActive ? (
+              <div
+                className="extp-dl-progress"
+                role="progressbar"
+                aria-valuenow={downloadPct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Download progress"
+              >
+                <div className="extp-dl-progress-head">
+                  <span className="extp-dl-progress-label">Downloading</span>
+                  <span className="extp-dl-progress-pct">{downloadPct}%</span>
+                </div>
+                <div className="extp-dl-progress-track">
+                  <div
+                    className="extp-dl-progress-fill"
+                    style={{ width: `${downloadPct}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
 
-        <div className="mt-3 flex shrink-0 gap-2 border border-[#454545] bg-[#2a2a2a] px-3 py-2">
-          <span className="shrink-0 text-[#ccc]" aria-hidden>
-            ›
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-start gap-2">
-              <span className="text-lg leading-none text-white" aria-hidden>
-                ⚠
+          <div className="extp-tabs">
+            {(["DETAILS", "FEATURES", "CHANGELOG"] as const).map((tab, i) => (
+              <button
+                key={tab}
+                type="button"
+                className={i === 0 ? "extp-tab extp-tab--active" : "extp-tab"}
+              >
+                {tab}
+              </button>
+            ))}
+            <button type="button" aria-label="More" className="extp-tab-more">
+              <Image
+                src={TRIPLE_DOT_ICON}
+                alt=""
+                width={36}
+                height={36}
+                className="extp-tab-more-ico"
+                draggable={false}
+                unoptimized
+                aria-hidden
+              />
+            </button>
+          </div>
+
+          <details className="extp-details">
+            <summary>
+              <span className="extp-details-chev" aria-hidden>
+                ›
               </span>
-              <div>
-                <p className="text-[0.85rem] font-light text-white">Update V1.202</p>
-                <p className="mt-1 text-[0.75rem] leading-snug text-[#b0b0b0]">
+              <div className="extp-details-inner">
+                <Image
+                  src={WARNING_ICON}
+                  alt=""
+                  width={30}
+                  height={30}
+                  className="extp-details-warn-ico"
+                  draggable={false}
+                  unoptimized
+                  aria-hidden
+                />
+                <p className="extp-details-h">Update V1.202</p>
+                <p className="extp-details-p">
                   This is a rollback to 2025.9.1. Changes from 2025.9.100 to
                   2025.10.1 have been reverted.
                 </p>
               </div>
+            </summary>
+            <div className="extp-details-body">
+              <span className="extp-details-spacer" aria-hidden />
+              <div className="extp-details-copy">
+                <p className="extp-details-h">Notable changes:</p>
+                <ul className="extp-details-ul">
+                  <li>
+                    <span className="extp-details-strong">Bug fix: </span>
+                    Pylance 2025.10.1 no longer detects workspace or PEP 420 namespace
+                    packages after update pylance-release#7737
+                  </li>
+                  <li>
+                    <span className="extp-details-strong">Bug fix: </span>
+                    Crash when importing inherited TypedDict pylance-release#7736
+                  </li>
+                  <li>
+                    <span className="extp-details-strong">Bug fix: </span>
+                    [pharecia-extension] 2025.10.1 failed upon starting
+                    pylance-release#7735
+                  </li>
+                  <li>
+                    <span className="extp-details-strong">Bug fix: </span>
+                    Error: command &apos;pylance.registerNotebookStartupCommands&apos; already exists
+                    pylance-release#7734
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </details>
+
+          <div className="extp-prose">
+            <div className="extp-prose-stack">
+              <h3>Python extension for Pharecia Code</h3>
+              <p>
+                Pharecia offers comprehensive support for the Python language across
+                all currently maintained versions. It serves as a central hub where
+                various tools integrate smoothly to provide advanced IntelliSense via
+                Pylance and robust debugging through the Python Debugger. Within
+                Pharecia, developers can easily manage code formatting, linting, and
+                complex refactoring, while navigating projects using the built-in
+                variable and test explorers. Additionally, it streamlines workflow
+                through the latest environment management features found in the new
+                Pharecia Environments Extension.
+              </p>
+              <h4>Advanced Environment Management</h4>
+              <p>
+                A Visual Studio Code{" "}
+                <span className="extp-prose-link">extension</span>
+                {" "}
+                with rich support for the Python language (for all actively supported
+                Python versions), providing access points for extensions to seamlessly
+                integrate and offer support for IntelliSense (Pylance), debugging
+                (Python Debugger), formatting, linting, code navigation.
+              </p>
             </div>
           </div>
         </div>
-
-        <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
-          <h3 className="text-[1.1rem] font-light text-white">
-            Python extension for Pharecia Code
-          </h3>
-          <p className="mt-2 text-[0.8rem] leading-relaxed text-[#b8b8b8]">
-            A comprehensive toolkit that brings Pylance-powered IntelliSense,
-            linting, debugging, testing, and environment management into
-            Pharecia Code. Switch interpreters, create virtual environments, and
-            keep dependencies aligned with your project—all from one place.
-          </p>
-          <h4 className="mt-4 text-[0.95rem] font-light text-white">
-            Advanced Environment Management
-          </h4>
-          <p className="mt-2 text-[0.8rem] leading-relaxed text-[#b8b8b8]">
-            Configure conda, venv, and Poetry workflows with guided setup and
-            quick actions from the command palette.
-          </p>
-        </div>
       </div>
     </aside>
+    {restartModal}
+    </>
   );
 }
