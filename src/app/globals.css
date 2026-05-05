@@ -233,7 +233,7 @@ code {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: #212121;
+  background-color: rgba(130, 130, 130, 1);
 }
 
 .svp-stage {
@@ -278,6 +278,8 @@ code {
 
 .ecm-code-header__menu {
   display: inline-flex;
+  width: 2rem; /* 32px at 16px root */
+  height: 2rem; /* 32px at 16px root */
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -300,8 +302,8 @@ code {
 
 .ecm-code-header__menu-svg {
   display: block;
-  width: 2.25rem; /* 36px */
-  height: 2.25rem; /* 36px */
+  width: 2rem; /* 32px at 16px root */
+  height: 2rem; /* 32px at 16px root */
 }
 
 .ecm-code-header__title {
@@ -603,6 +605,7 @@ code {
   column-gap: 24px;
   row-gap: 0;
   overflow: hidden;
+  background-color: #262728;
   padding-left: 3.125rem;
   padding-right: 16px;
   padding-bottom: 3.25rem;
@@ -624,6 +627,8 @@ code {
   flex: 1 1 0%;
   flex-direction: column;
   border-radius: 16px;
+  border-width: 1px;
+  border-color: rgb(0 0 0);
 }
 
 .hwb-coding[data-hwb-mode="ext"] {
@@ -914,6 +919,7 @@ code {
 }
 
 .ewb-code-wrapper {
+  position: relative;
   display: flex;
   min-height: 0;
   min-width: 0;
@@ -1335,6 +1341,7 @@ code {
 
 /* ─── Extension detail side panel (Python mock) ─── */
 .extp-aside {
+  position: relative;
   display: flex;
   margin-top: 6.125rem;
   height: 70.125rem;
@@ -1691,7 +1698,7 @@ code {
 
 /* Download complete — restart prompt (portal to body) */
 .extp-restart-modal-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 10050;
   display: flex;
@@ -1703,15 +1710,17 @@ code {
 
 .extp-restart-modal {
   box-sizing: border-box;
-  width: min(100%, 36rem);
-  max-width: 100%;
+  width: 52rem; /* 832px at 16px root */
+  min-width: 52rem;
+  height: 15.875rem; /* 254px at 16px root */
+  max-width: 52rem;
   border-radius: 0.25rem;
   background-color: #333;
   padding: 1.75rem 2rem 2rem;
   box-shadow:
     0 1.5rem 3rem rgb(0 0 0 / 0.55),
     0 0.5rem 1.25rem rgb(0 0 0 / 0.4),
-    0 0 0 1px rgb(255 255 255 / 0.06);
+    0 0 0 0.0625rem rgb(255 255 255 / 0.06);
 }
 
 .extp-restart-modal-header {
@@ -1722,40 +1731,35 @@ code {
 
 .extp-restart-modal-icon-wrap {
   display: flex;
-  height: 2.25rem;
-  width: 2.25rem;
+  height: 2rem;
+  width: 2rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  transform: rotate(45deg);
-  border-radius: 0.125rem;
-  background-color: #557a32;
 }
 
-.extp-restart-modal-icon-mark {
-  transform: rotate(-45deg);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1;
-  color: #fff;
+.extp-restart-modal-icon-img {
+  display: block;
+  height: 2rem;
+  width: 2rem;
+  object-fit: contain;
 }
 
 .extp-restart-modal-title {
   flex: 1;
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 300;
   line-height: 1.3;
   color: #fff;
 }
 
 .extp-restart-modal-close {
-  display: flex;
-  height: 2.25rem;
-  width: 2.25rem;
+  display: grid;
+  place-items: center;
+  height: 2rem;
+  width: 2rem;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
   border: 0;
   border-radius: 0.25rem;
   background: transparent;
@@ -1773,13 +1777,13 @@ code {
 
 .extp-restart-modal-close:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.35);
+  box-shadow: 0 0 0 0.125rem rgb(255 255 255 / 0.35);
 }
 
 .extp-restart-modal-body {
   margin: 1.25rem 0 1.75rem;
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 1.375rem;
+  font-weight: 300;
   line-height: 1.45;
   color: #ccc;
 }
@@ -1792,13 +1796,13 @@ code {
 }
 
 .extp-restart-modal-btn {
-  min-height: 2.75rem;
+  min-height: 3.25rem; /* 52px at 16px root */
   cursor: pointer;
   border: 0;
   border-radius: 0.25rem;
   padding: 0.5rem 1.25rem;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 300;
   line-height: 1.2;
   color: #fff;
   transition: background-color 0.15s ease, filter 0.15s ease;
@@ -1806,7 +1810,7 @@ code {
 
 .extp-restart-modal-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgb(255 255 255 / 0.35);
+  box-shadow: 0 0 0 0.125rem rgb(255 255 255 / 0.35);
 }
 
 .extp-restart-modal-btn--primary {

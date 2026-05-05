@@ -12,12 +12,12 @@ const asideItems = [
     src: "/code-editor/aside-menu/CirclesThree.svg",
   },
   {
-    href: "/extensions",
+    href: null as string | null,
     label: "Extensions",
     src: "/code-editor/aside-menu/FileText.svg",
   },
   {
-    href: null as string | null,
+    href: "/extensions",
     label: "Rules",
     src: "/code-editor/aside-menu/Gavel.svg",
   },

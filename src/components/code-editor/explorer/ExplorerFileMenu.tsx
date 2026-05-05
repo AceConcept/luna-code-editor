@@ -58,7 +58,7 @@ function FileTreeRow({
 }
 
 const fileTreeRowButtonBaseClass =
-  "flex h-[3rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.25rem] font-light leading-[1.6] text-white transition-colors hover:bg-[#4A4A4A] focus-visible:outline-none";
+  "flex h-[3rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.25rem] font-light leading-[1.6] text-[#BDBEBE] transition-colors hover:bg-[#4A4A4A] focus-visible:outline-none";
 
 const fileTreeRowContentClass =
   "flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem]";
@@ -77,19 +77,31 @@ export function ExplorerFileMenu() {
         aria-label="File menu"
         className="hwb-explorer-file-menu-inner"
       >
-        <div className="flex w-full items-center justify-between gap-[0.5rem] bg-transparent py-[1rem] pl-0 text-[1.25rem] font-light uppercase tracking-wide text-white">
-          <span>Luminos</span>
-          <Image
-            src="/code-editor/folder-menu/DotsThreeOutline.svg"
-            alt=""
-            width={20}
-            height={20}
-            className={fileMenuIconBoxClass}
-            draggable={false}
-            unoptimized
-          />
+        <div className="flex w-full items-center justify-between gap-[0.5rem] bg-transparent py-[1rem] pl-0 text-[1.25rem] font-light uppercase tracking-wide text-[#BDBEBE]">
+          <button
+            type="button"
+            aria-label="Luminos explorer title"
+            className="cursor-pointer rounded-sm text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+          >
+            Luminos
+          </button>
+          <button
+            type="button"
+            aria-label="Explorer options"
+            className="cursor-pointer rounded-sm opacity-80 transition-opacity duration-150 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+          >
+            <Image
+              src="/code-editor/folder-menu/DotsThreeOutline.svg"
+              alt=""
+              width={20}
+              height={20}
+              className="h-[1.5rem] w-[1.5rem] shrink-0 cursor-pointer object-contain"
+              draggable={false}
+              unoptimized
+            />
+          </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto bg-transparent pb-[1rem] text-[1.25rem] font-light leading-[1.6] text-white">
+        <div className="min-h-0 flex-1 overflow-auto bg-transparent pb-[1rem] text-[1.25rem] font-light leading-[1.6] text-[#BDBEBE]">
           <FileTreeRow className={`${fileTreeRowButtonBaseClass} pl-[0.75rem]`}>
             <FileTreeCaret />
             luminos-next

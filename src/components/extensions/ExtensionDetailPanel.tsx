@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -12,6 +13,7 @@ const DOWNLOAD_BTN_ICON = "/extensions/ext-panel/dwnload-icon.svg";
 const DL_CARET_ICON = "/extensions/ext-panel/dl-caret.svg";
 const CLOUD_ARROW_DOWN_ICON = "/extensions/ext-panel/CloudArrowDown.svg";
 const WARNING_ICON = "/extensions/ext-panel/Warning.svg";
+const WARNING_DIAMOND_ICON = "/extensions/ext-panel/alert-modal/WarningDiamond.svg";
 const TRIPLE_DOT_ICON = "/extensions/ext-panel/triple-dot.svg";
 
 function StarRow() {
@@ -54,15 +56,16 @@ const HOLD_AT_100_MS = 400;
 
 /** Side panel mock: Python Environments — width 692px (43.25rem @ 16px root), height 1122px (70.125rem). */
 export function ExtensionDetailPanel() {
+  const router = useRouter();
   const [downloadPct, setDownloadPct] = useState(0);
   const [downloadActive, setDownloadActive] = useState(false);
   const [restartModalOpen, setRestartModalOpen] = useState(false);
-  const [portalMounted, setPortalMounted] = useState(false);
+  const [modalHost, setModalHost] = useState<HTMLElement | null>(null);
   const finishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    setPortalMounted(true);
+    setModalHost(document.getElementById("code-wrapper"));
   }, []);
 
   const closeRestartModal = useCallback(() => {
@@ -114,60 +117,10 @@ export function ExtensionDetailPanel() {
     setDownloadActive(true);
   };
 
-  const restartModal =
-    portalMounted && restartModalOpen
-      ? createPortal(
-          <div
-            className="extp-restart-modal-backdrop"
-            role="presentation"
-          >
-            <div
-              className="extp-restart-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="extp-restart-modal-title"
-            >
-              <div className="extp-restart-modal-header">
-                <div className="extp-restart-modal-icon-wrap" aria-hidden>
-                  <span className="extp-restart-modal-icon-mark">!</span>
-                </div>
-                <h2 id="extp-restart-modal-title" className="extp-restart-modal-title">
-                  Download Complete
-                </h2>
-                <button
-                  type="button"
-                  className="extp-restart-modal-close"
-                  aria-label="Close"
-                  onClick={closeRestartModal}
-                >
-                  ×
-                </button>
-              </div>
-              <p className="extp-restart-modal-body">
-                Download finished. A restart of Pharecia is required to access all
-                new features.
-              </p>
-              <div className="extp-restart-modal-actions">
-                <button
-                  type="button"
-                  className="extp-restart-modal-btn extp-restart-modal-btn--primary"
-                  onClick={closeRestartModal}
-                >
-                  Restart Now
-                </button>
-                <button
-                  type="button"
-                  className="extp-restart-modal-btn extp-restart-modal-btn--secondary"
-                  onClick={closeRestartModal}
-                >
-                  Restart Later
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )
-      : null;
+  const onRestartNowClick = useCallback(() => {
+    closeRestartModal();
+    router.push("/");
+  }, [closeRestartModal, router]);
 
   return (
     <>
@@ -431,7 +384,64 @@ export function ExtensionDetailPanel() {
         </div>
       </div>
     </aside>
-    {restartModal}
+    {restartModalOpen && modalHost
+      ? createPortal(
+          <div className="extp-restart-modal-backdrop" role="presentation">
+            <div
+              className="extp-restart-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="extp-restart-modal-title"
+            >
+              <div className="extp-restart-modal-header">
+                <div className="extp-restart-modal-icon-wrap" aria-hidden>
+                  <Image
+                    src={WARNING_DIAMOND_ICON}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="extp-restart-modal-icon-img"
+                    draggable={false}
+                    unoptimized
+                  />
+                </div>
+                <h2 id="extp-restart-modal-title" className="extp-restart-modal-title">
+                  Download Complete
+                </h2>
+                <button
+                  type="button"
+                  className="extp-restart-modal-close"
+                  aria-label="Close"
+                  onClick={closeRestartModal}
+                >
+                  ×
+                </button>
+              </div>
+              <p className="extp-restart-modal-body">
+                Download finished. A restart of Pharecia is required to access all new
+                features.
+              </p>
+              <div className="extp-restart-modal-actions">
+                <button
+                  type="button"
+                  className="extp-restart-modal-btn extp-restart-modal-btn--primary"
+                  onClick={onRestartNowClick}
+                >
+                  Restart Now
+                </button>
+                <button
+                  type="button"
+                  className="extp-restart-modal-btn extp-restart-modal-btn--secondary"
+                  onClick={closeRestartModal}
+                >
+                  Restart Later
+                </button>
+              </div>
+            </div>
+          </div>,
+          modalHost,
+        )
+      : null}
     </>
   );
 }
