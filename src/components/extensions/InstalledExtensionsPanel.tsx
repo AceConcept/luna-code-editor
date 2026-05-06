@@ -11,10 +11,10 @@ import {
 import Image from "next/image";
 import { ExtensionDetailPanel } from "@/components/extensions/ExtensionDetailPanel";
 
-/** List column contracts/expands on click (matches `duration-300` / 300ms CSS). */
+/** List narrows before the panel mounts; no CSS transition on list width — avoids scrollbar flicker. */
 const LIST_CONTRACT_MS = 300;
-/** Detail panel fades in after list contraction finishes. */
-const PANEL_FADE_MS = 280;
+/** Panel `opacity` fade duration; list stays narrowed until fade-out finishes on close. */
+const PANEL_FADE_MS = 300;
 
 const ICON_BASE = "/extensions/code-icons/Component%203";
 
@@ -153,13 +153,23 @@ export function InstalledExtensionsPanel() {
   const searchParams = useSearchParams();
 
   const [layoutNarrowed, setLayoutNarrowed] = useState(false);
-  /** Panel column width: stays open while opacity fades out on close. */
   const [panelTrackOpen, setPanelTrackOpen] = useState(false);
   const [panelRevealed, setPanelRevealed] = useState(false);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Avoid re-applying URL→state when `useSearchParams()` identity churns but `?query` is unchanged. */
   const lastAppliedSearchQsRef = useRef<string | undefined>(undefined);
+  /** Last time `?extDetail=` meant “drawer ought to open” — avoids close choreography when URL never had it. */
+  const prevHadExtDetailInUrlRef = useRef(false);
+
+  /** Lets the slot paint at `opacity: 0` before `panelRevealed` so the 300ms fade-in runs. */
+  const schedulePanelFadeIn = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setPanelRevealed(true);
+      });
+    });
+  }, []);
 
   const syncExtDetailInUrl = useCallback(
     (wantDetail: boolean) => {
@@ -198,6 +208,7 @@ export function InstalledExtensionsPanel() {
       PYTHON_ENVIRONMENTS_EXT_ID;
 
     if (detailInUrl) {
+      prevHadExtDetailInUrlRef.current = true;
       if (openTimerRef.current) {
         clearTimeout(openTimerRef.current);
         openTimerRef.current = null;
@@ -208,28 +219,30 @@ export function InstalledExtensionsPanel() {
       }
       setLayoutNarrowed(true);
       setPanelTrackOpen(true);
-      setPanelRevealed(true);
+      schedulePanelFadeIn();
       return;
     }
+
+    if (!prevHadExtDetailInUrlRef.current) {
+      return;
+    }
+    prevHadExtDetailInUrlRef.current = false;
 
     if (openTimerRef.current) {
       clearTimeout(openTimerRef.current);
       openTimerRef.current = null;
     }
 
-    setPanelRevealed((revealed) => {
-      if (!revealed) return revealed;
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = setTimeout(() => {
-        setPanelTrackOpen(false);
-        setLayoutNarrowed(false);
-        closeTimerRef.current = null;
-      }, PANEL_FADE_MS);
-      return false;
-    });
-  }, [searchQsKey]);
+    setPanelRevealed(false);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setPanelTrackOpen(false);
+      setLayoutNarrowed(false);
+      closeTimerRef.current = null;
+    }, PANEL_FADE_MS);
+  }, [searchQsKey, schedulePanelFadeIn]);
 
-  /** User removed `extDetail` while midway through open animation → reset list column width. */
+  /** URL lost `extDetail` during list-narrow-only phase → unwrap list width. */
   useEffect(() => {
     const detailInUrl =
       new URLSearchParams(searchQsKey).get(EXT_DETAIL_QUERY_KEY) ===
@@ -242,15 +255,9 @@ export function InstalledExtensionsPanel() {
     ) {
       return;
     }
-    if (openTimerRef.current) return;
-    if (closeTimerRef.current) return;
+    if (openTimerRef.current || closeTimerRef.current) return;
     setLayoutNarrowed(false);
-  }, [
-    searchQsKey,
-    layoutNarrowed,
-    panelRevealed,
-    panelTrackOpen,
-  ]);
+  }, [searchQsKey, layoutNarrowed, panelRevealed, panelTrackOpen]);
 
   const togglePython = useCallback(() => {
     if (panelRevealed) {
@@ -280,9 +287,18 @@ export function InstalledExtensionsPanel() {
       if (openTimerRef.current) {
         clearTimeout(openTimerRef.current);
         openTimerRef.current = null;
+        setLayoutNarrowed(false);
+        syncExtDetailInUrl(false);
+        return;
       }
-      setLayoutNarrowed(false);
-      syncExtDetailInUrl(false);
+      return;
+    }
+
+    if (panelTrackOpen && closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+      setPanelRevealed(true);
+      syncExtDetailInUrl(true);
       return;
     }
 
@@ -293,11 +309,17 @@ export function InstalledExtensionsPanel() {
     setLayoutNarrowed(true);
     openTimerRef.current = setTimeout(() => {
       setPanelTrackOpen(true);
-      setPanelRevealed(true);
       syncExtDetailInUrl(true);
+      schedulePanelFadeIn();
       openTimerRef.current = null;
     }, LIST_CONTRACT_MS);
-  }, [layoutNarrowed, panelRevealed, syncExtDetailInUrl]);
+  }, [
+    layoutNarrowed,
+    panelRevealed,
+    panelTrackOpen,
+    syncExtDetailInUrl,
+    schedulePanelFadeIn,
+  ]);
 
   const rowOpen = layoutNarrowed || panelTrackOpen;
 
@@ -357,9 +379,8 @@ export function InstalledExtensionsPanel() {
         <div
           className={`extl-panel-slot${panelRevealed ? "" : " extl-panel-slot--inert"}`}
           style={{
-            opacity: panelRevealed ? 1 : 0,
-            transition: `opacity ${PANEL_FADE_MS}ms ease-out`,
             visibility: panelTrackOpen ? "visible" : "hidden",
+            opacity: panelTrackOpen && panelRevealed ? 1 : 0,
           }}
           aria-hidden={!panelRevealed}
           inert={panelRevealed ? undefined : true}

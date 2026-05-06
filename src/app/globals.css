@@ -1054,7 +1054,7 @@ code {
   display: flex;
   min-height: 0;
   min-width: 0;
-  flex: 1;
+  flex: 1 1 0;
   flex-direction: column;
   overflow: hidden;
   background: transparent;
@@ -1067,8 +1067,7 @@ code {
   min-height: 0;
   min-width: 0;
   width: 100%;
-  flex-shrink: 0;
-  flex: 1;
+  flex: 1 1 0;
   flex-direction: column;
   overflow: hidden;
   padding-top: 58px;
@@ -1081,32 +1080,24 @@ code {
   max-width: 103.25rem;
 }
 
+/* `max-width` toggles narrow/wide (React); height stable via `flex: 1 1 0`. Easing matches `LIST_CONTRACT_MS` / `PANEL_FADE_MS` (300ms). */
 .extl-list-col {
   display: flex;
   gap: 1rem; /* 16px */
+  box-sizing: border-box;
+  width: 100%;
   min-height: 0;
   min-width: 0;
+  flex: 1 1 0;
   flex-direction: column;
   overflow: hidden;
-  transition:
-    max-width 300ms ease-out,
-    flex 300ms ease-out,
-    width 300ms ease-out;
+  transition: max-width 300ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .extl-list-col {
     transition: none;
   }
-}
-
-.extl-list-col--narrowed {
-  flex-shrink: 0;
-}
-
-.extl-list-col--wide {
-  width: 100%;
-  flex: 1;
 }
 
 .extl-header {
@@ -1170,7 +1161,12 @@ code {
 .extl-scroll {
   min-height: 0;
   flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   background: transparent;
 }
 
@@ -1179,6 +1175,7 @@ code {
   display: flex;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   list-style: none;
   flex-direction: column;
   gap: 0.875rem;
@@ -1187,6 +1184,7 @@ code {
 }
 
 .extl-li {
+  min-width: 0;
   list-style: none;
 }
 
@@ -1196,6 +1194,7 @@ code {
   height: 7.625rem;
   min-height: 7.625rem;
   width: 100%;
+  min-width: 0;
   cursor: default;
   overflow: hidden;
   border-radius: 0.5rem;
@@ -1251,6 +1250,7 @@ code {
   display: flex;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   align-items: center;
   gap: 1.15rem;
 }
@@ -1276,6 +1276,7 @@ code {
   min-height: 0;
   min-width: 0;
   flex: 1;
+  overflow-wrap: anywhere;
 }
 
 .extl-row-heading {
@@ -1287,7 +1288,7 @@ code {
 
 .extl-row-desc {
   margin-top: 0.35rem;
-  max-width: 42rem;
+  max-width: none;
   font-size: 1.05rem;
   font-weight: 300;
   line-height: 1.375;
@@ -1296,7 +1297,8 @@ code {
 
 .extl-row-meta {
   display: flex;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
@@ -1346,11 +1348,19 @@ code {
   right: 0;
   z-index: 20;
   display: flex;
+  overflow: hidden;
   min-height: 0;
   width: 43.25rem;
   flex-shrink: 0;
   flex-direction: column;
   justify-content: flex-start;
+  transition: opacity 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .extl-panel-slot {
+    transition: none;
+  }
 }
 
 .extl-panel-slot--inert {

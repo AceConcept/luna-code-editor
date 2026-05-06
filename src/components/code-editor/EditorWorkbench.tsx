@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { EditorAsideNav } from "@/components/EditorAsideNav";
 
@@ -312,6 +312,386 @@ function routeTsMockLines(): ReactNode[] {
   ];
 }
 
+type EditorTabLabel = (typeof editorTabs)[number]["label"];
+
+/** Reuse TS token colors for numeric `0` / `var()` in CSS mock */
+const cssNum = hl.num;
+const cssFn = hl.fn;
+
+/** CSS tokens for `globals.css` mock */
+const cssHl = {
+  rule: "text-[#D7BA7D]",
+  prop: "text-[#9CDCFE]",
+  val: "text-[#CE9178]",
+  pun: "text-[#F7F8F8]",
+  comment: "text-[#6A9955]",
+} as const;
+
+function globalsCssMockLines(): ReactNode[] {
+  const { rule, prop, val, pun, comment } = cssHl;
+  return [
+    <>
+      <span className={comment}>{`/* App-wide tokens & base layer */`}</span>
+    </>,
+    <>
+      <span className={rule}>:root</span>
+      <span className={pun}> {"{"}</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>--accent</span>
+      <span className={pun}>: </span>
+      <span className={val}>#2970ff</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>--surface</span>
+      <span className={pun}>: </span>
+      <span className={val}>#0e0e0e</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <span className={pun}>{"}"}</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={rule}>body</span>
+      <span className={pun}> {"{"}</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>margin</span>
+      <span className={pun}>: </span>
+      <span className={cssNum}>0</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>font-family</span>
+      <span className={pun}>: </span>
+      <span className={val}>system-ui</span>
+      <span className={pun}>, </span>
+      <span className={val}>sans-serif</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>background</span>
+      <span className={pun}>: </span>
+      <span className={cssFn}>var</span>
+      <span className={pun}>(</span>
+      <span className={val}>--surface</span>
+      <span className={pun}>);</span>
+    </>,
+    <>
+      <span className={pun}>{"}"}</span>
+    </>,
+  ];
+}
+
+function wordModalTsMockLines(): ReactNode[] {
+  const { kw, typ, fn, id, prop, str, pun } = hl;
+  return [
+    <>
+      <span className={str}>&apos;use client&apos;</span>
+      <span className={pun}>;</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={kw}>import</span>{" "}
+      <span className={pun}>{"{"}</span>{" "}
+      <span className={id}>useState</span>
+      <span className={pun}>, </span>
+      <span className={kw}>type</span>
+      <span className={pun}>{" "}</span>
+      <span className={typ}>ReactNode</span>{" "}
+      <span className={pun}>{"}"}</span>{" "}
+      <span className={kw}>from</span>{" "}
+      <span className={str}>&apos;react&apos;</span>
+      <span className={pun}>;</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={kw}>export</span>{" "}
+      <span className={kw}>type</span>{" "}
+      <span className={typ}>WordModalProps</span>{" "}
+      <span className={pun}>= {"{"}</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>word</span>
+      <span className={pun}>: </span>
+      <span className={typ}>string</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>onClose</span>
+      <span className={pun}>: </span>
+      <span className={pun}>() =&gt; </span>
+      <span className={typ}>void</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={prop}>children</span>
+      <span className={pun}>?: </span>
+      <span className={typ}>ReactNode</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <span className={pun}>{"}"}</span>
+      <span className={pun}>;</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={kw}>export</span>{" "}
+      <span className={kw}>function</span>{" "}
+      <span className={fn}>WordModal</span>
+      <span className={pun}>(</span>
+      <span className={pun}>{"{"}</span>{" "}
+      <span className={id}>word</span>
+      <span className={pun}>, </span>
+      <span className={id}>onClose</span>
+      <span className={pun}>, </span>
+      <span className={id}>children</span>
+      <span className={pun}>{" "}</span>
+      <span className={pun}>{"}"}</span>
+      <span className={pun}>: </span>
+      <span className={typ}>WordModalProps</span>
+      <span className={pun}>)</span>{" "}
+      <span className={pun}>{"{"}</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={kw}>const</span>{" "}
+      <span className={pun}>[</span>
+      <span className={id}>open</span>
+      <span className={pun}>, </span>
+      <span className={id}>setOpen</span>
+      <span className={pun}>]</span>{" "}
+      <span className={pun}>=</span>{" "}
+      <span className={fn}>useState</span>
+      <span className={pun}>(</span>
+      <span className={kw}>false</span>
+      <span className={pun}>);</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={kw}>if</span>{" "}
+      <span className={pun}>(</span>
+      <span className={pun}>!</span>
+      <span className={id}>open</span>
+      <span className={pun}>)</span>{" "}
+      <span className={kw}>return</span>{" "}
+      <span className={kw}>null</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={kw}>return</span>{" "}
+      <span className={pun}>(</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;</span>
+      <span className={typ}>section</span>
+      <span className={pun}> </span>
+      <span className={prop}>aria-label</span>
+      <span className={pun}>=</span>
+      <span className={str}>&quot;Word details&quot;</span>
+      <span className={pun}>&gt;</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>{"{"}</span>
+      <span className={id}>children</span>
+      <span className={pun}>{"}"}</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;/</span>
+      <span className={typ}>section</span>
+      <span className={pun}>&gt;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={pun}>);</span>
+    </>,
+    <>
+      <span className={pun}>{"}"}</span>
+    </>,
+  ];
+}
+
+function pageTsxMockLines(): ReactNode[] {
+  const { kw, typ, fn, id, prop, str, pun } = hl;
+  return [
+    <>
+      <span className={str}>&apos;use client&apos;</span>
+      <span className={pun}>;</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={kw}>import</span>{" "}
+      <span className={pun}>{"{"}</span>{" "}
+      <span className={id}>useState</span>{" "}
+      <span className={pun}>{"}"}</span>{" "}
+      <span className={kw}>from</span>{" "}
+      <span className={str}>&apos;react&apos;</span>
+      <span className={pun}>;</span>
+    </>,
+    <>
+      <span className={kw}>import</span>{" "}
+      <span className={pun}>{"{"}</span>{" "}
+      <span className={typ}>WordModal</span>{" "}
+      <span className={pun}>{"}"}</span>{" "}
+      <span className={kw}>from</span>{" "}
+      <span className={str}>&apos;@/components/WordModal&apos;</span>
+      <span className={pun}>;</span>
+    </>,
+    <>&nbsp;</>,
+    <>
+      <span className={kw}>export</span>{" "}
+      <span className={kw}>default</span>{" "}
+      <span className={kw}>function</span>{" "}
+      <span className={fn}>DictionaryPage</span>
+      <span className={pun}>()</span>{" "}
+      <span className={pun}>{"{"}</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={kw}>const</span>{" "}
+      <span className={pun}>[</span>
+      <span className={id}>q</span>
+      <span className={pun}>, </span>
+      <span className={id}>setQ</span>
+      <span className={pun}>]</span>{" "}
+      <span className={pun}>=</span>{" "}
+      <span className={fn}>useState</span>
+      <span className={pun}>(</span>
+      <span className={str}>&quot;&quot;</span>
+      <span className={pun}>);</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={kw}>return</span>{" "}
+      <span className={pun}>(</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;</span>
+      <span className={typ}>main</span>
+      <span className={pun}> </span>
+      <span className={prop}>className</span>
+      <span className={pun}>=</span>
+      <span className={str}>&quot;mx-auto max-w-3xl p-6&quot;</span>
+      <span className={pun}>&gt;</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;</span>
+      <span className={typ}>h1</span>
+      <span className={pun}>&gt;</span>
+      <span className={id}>Dictionary</span>
+      <span className={pun}>&lt;/</span>
+      <span className={typ}>h1</span>
+      <span className={pun}>&gt;</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;</span>
+      <span className={typ}>WordModal</span>
+      <span className={pun}> </span>
+      <span className={prop}>word</span>
+      <span className={pun}>=</span>
+      <span className={pun}>{"{"}</span>
+      <span className={id}>q</span>
+      <span className={pun}>{"}"}</span>{" "}
+      <span className={prop}>onClose</span>
+      <span className={pun}>=</span>
+      <span className={pun}>{"{"}</span>
+      <span className={pun}>() =&gt; </span>
+      <span className={fn}>setQ</span>
+      <span className={pun}>(</span>
+      <span className={str}>&quot;&quot;</span>
+      <span className={pun}>)</span>
+      <span className={pun}>{"}"}</span>
+      <span className={pun}> /&gt;</span>
+    </>,
+    <>
+      <Indent level={2} />
+      <span className={pun}>&lt;/</span>
+      <span className={typ}>main</span>
+      <span className={pun}>&gt;</span>
+    </>,
+    <>
+      <Indent level={1} />
+      <span className={pun}>);</span>
+    </>,
+    <>
+      <span className={pun}>{"}"}</span>
+    </>,
+  ];
+}
+
+function editorLinesForTab(tab: EditorTabLabel): ReactNode[] {
+  switch (tab) {
+    case "globals.css":
+      return globalsCssMockLines();
+    case "WordModal.ts":
+      return wordModalTsMockLines();
+    case "route.ts":
+      return routeTsMockLines();
+    case "page.tsx":
+      return pageTsxMockLines();
+    default:
+      return routeTsMockLines();
+  }
+}
+
+type BreadcrumbSeg = { key: string; label: string; iconSrc?: string };
+
+function breadcrumbsForTab(tab: EditorTabLabel): BreadcrumbSeg[] {
+  const base: BreadcrumbSeg[] = [
+    { key: "root", label: "luminos-next" },
+    { key: "src", label: "src" },
+  ];
+  switch (tab) {
+    case "globals.css":
+      return [
+        ...base,
+        { key: "app", label: "app" },
+        { key: "file", label: "globals.css", iconSrc: FI.tailwind },
+      ];
+    case "WordModal.ts":
+      return [
+        ...base,
+        { key: "components", label: "components" },
+        { key: "file", label: "WordModal.ts", iconSrc: FI.ts },
+      ];
+    case "route.ts":
+      return [
+        ...base,
+        { key: "app", label: "app" },
+        { key: "dictionary", label: "dictionary" },
+        { key: "file", label: "route.ts", iconSrc: FI.git },
+        { key: "sym1", label: "JishoResponse", iconSrc: FI.git },
+        { key: "sym2", label: "senses", iconSrc: "/code-editor/folder-menu/code-icons/fix.svg" },
+      ];
+    case "page.tsx":
+      return [
+        ...base,
+        { key: "app", label: "app" },
+        { key: "dictionary", label: "dictionary" },
+        { key: "file", label: "page.tsx", iconSrc: FI.npm },
+      ];
+    default:
+      return breadcrumbsForTab("route.ts");
+  }
+}
+
 /** `hwb` = home (/), `ewb` = extensions (/extensions); CSS is split in globals.css */
 export type EditorWorkbenchBenchPrefix = "hwb" | "ewb";
 
@@ -346,7 +726,14 @@ export function EditorWorkbench({
     p === "hwb"
       ? { "data-hwb-mode": mainPanel ? "ext" : "editor" }
       : { "data-ewb-mode": mainPanel ? "ext" : "editor" };
-  const routeLines = routeTsMockLines();
+  const editorLines = useMemo(
+    () => editorLinesForTab(activeEditorTab),
+    [activeEditorTab],
+  );
+  const breadcrumbSegs = useMemo(
+    () => breadcrumbsForTab(activeEditorTab),
+    [activeEditorTab],
+  );
 
   return (
     <div className={wb(p, "root")} style={{ fontSize: "1.25rem", lineHeight: 1.5 }}>
@@ -533,57 +920,24 @@ export function EditorWorkbench({
           </div>
 
           <div className="box-border flex h-[3rem] min-h-[3rem] shrink-0 flex-nowrap items-center gap-x-[0.5rem] gap-y-1 overflow-hidden border-b border-[#2b2b2b]/70 bg-[#0E0E0E] pl-[2.5rem] pr-[1rem] text-[1.25rem] leading-none text-[#818181]">
-            <button
-              type="button"
-              className="inline-flex items-center rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              luminos-next
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex items-center rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              src
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex items-center rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              app
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex items-center rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              dictionary
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex min-h-0 min-w-0 items-center gap-[0.5rem] truncate rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              <BreadcrumbCrumbIcon src={FI.git} />
-              route.ts
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex min-h-0 min-w-0 items-center gap-[0.5rem] truncate rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              <BreadcrumbCrumbIcon src={FI.git} />
-              JishoResponse
-            </button>
-            <BreadcrumbCaret />
-            <button
-              type="button"
-              className="inline-flex min-h-0 min-w-0 items-center gap-[0.5rem] truncate rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
-            >
-              <BreadcrumbCrumbIcon src="/code-editor/folder-menu/code-icons/fix.svg" />
-              senses
-            </button>
+            {breadcrumbSegs.map((seg, i) => (
+              <Fragment key={seg.key}>
+                {i > 0 ? <BreadcrumbCaret /> : null}
+                <button
+                  type="button"
+                  className={
+                    seg.iconSrc
+                      ? "inline-flex min-h-0 min-w-0 items-center gap-[0.5rem] truncate rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+                      : "inline-flex items-center rounded-sm px-[0.125rem] text-inherit transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+                  }
+                >
+                  {seg.iconSrc ? (
+                    <BreadcrumbCrumbIcon src={seg.iconSrc} />
+                  ) : null}
+                  {seg.label}
+                </button>
+              </Fragment>
+            ))}
           </div>
 
           <div className="hwb-editor-scroll-area box-border min-h-0 min-w-0 flex-1 overflow-auto pt-[1rem] pb-[0.25rem] pl-[2.625rem] pr-[0.25rem] selection:bg-[#49483e]">
@@ -595,8 +949,8 @@ export function EditorWorkbench({
                 fontWeight: 300,
               }}
             >
-              {routeLines.map((line, i) => (
-                <div key={`line-row-${i}`} className="m-0 p-0 flex min-w-0 items-center">
+              {editorLines.map((line, i) => (
+                <div key={`line-row-${activeEditorTab}-${i}`} className="m-0 p-0 flex min-w-0 items-center">
                   <span className="flex h-[1.25rem] w-[3rem] shrink-0 cursor-pointer select-none items-center justify-end border-r border-[#3e3d32] pr-[0.75rem] text-right text-[1.125rem] tabular-nums text-[#9a9da1]">
                     {i + 1}
                   </span>
