@@ -262,7 +262,8 @@ code {
   width: 100%;
   min-width: 0;
   flex: 1;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  /* Center column has a real track width (was `auto` → shrank to icon+input min-content). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, min(40.75rem, 100%)) minmax(0, 1fr);
   align-items: center;
   column-gap: 1rem;
 }
@@ -315,11 +316,11 @@ code {
 }
 
 .ecm-code-header__search {
-  justify-self: center;
   box-sizing: border-box;
-  width: min(40.75rem, 100%);
-  max-width: 100%;
+  width: 100%;
   min-width: 0;
+  /* Track cap is 40.75rem (652px @ 16px root) / 100%; fills cell → full-width search bar */
+  justify-self: stretch;
 }
 
 .ecm-code-header__search-field {
@@ -328,12 +329,17 @@ code {
   justify-content: center;
   box-sizing: border-box;
   width: 100%;
-  min-height: 2.625rem; /* 42px */
-  border-radius: 9999px;
-  background-color: #b8b8b8;
-  padding: 0.4375rem 1.125rem;
+  min-width: 0;
+  height: 2.625rem; /* 42px at 16px root */
+  min-height: 2.625rem;
+  border-radius: 0.5625rem; /* rounded rect, VS Code–style strip */
+  border: 1px solid rgb(0 0 0 / 0.12);
+  background-color: #b6b7ba;
+  padding: 0.375rem 0.75rem;
+  color-scheme: light;
 }
 
+/* Icon + input stay one intrinsic-width cluster, centered together in the bar */
 .ecm-code-header__search-inner {
   display: inline-flex;
   max-width: 100%;
@@ -345,6 +351,7 @@ code {
   padding: 0;
   cursor: text;
   font: inherit;
+  color: #000;
 }
 
 .ecm-code-header__search-svg {
@@ -352,32 +359,45 @@ code {
   flex-shrink: 0;
   width: 1.375rem;
   height: 1.375rem;
-  color: rgb(27 27 27);
+  color: #000;
 }
 
 .ecm-code-header__search-input {
   box-sizing: border-box;
+  /* ~placeholder width when empty; grows with typing via field-sizing where supported */
   min-width: min(21ch, 100%);
-  max-width: 100%;
-  flex: 1 1 auto;
+  max-width: min(42ch, 100%);
+  width: auto;
+  flex: 0 1 auto;
   border: 0;
   margin: 0;
   background: transparent;
   padding: 0;
   font-family: inherit;
-  font-size: 1.125rem; /* 18px — close to VS Code Marketplace strip */
+  font-size: 1.0625rem; /* ~17px */
   font-weight: 400;
-  line-height: 1.25;
-  color: rgb(24 24 24);
-  text-align: inherit;
+  line-height: 1.35;
+  color: #000;
+  caret-color: #000;
+  -webkit-text-fill-color: #000;
+  text-align: start;
   outline: none;
+  field-sizing: content;
 }
 
 .ecm-code-header__search-input::placeholder {
   font-size: inherit;
   font-weight: inherit;
-  color: rgb(24 24 24 / 0.92);
+  color: #000;
   opacity: 1;
+}
+
+.ecm-code-header__search-input:-webkit-autofill,
+.ecm-code-header__search-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #000;
+  caret-color: #000;
+  box-shadow: 0 0 0 1000px #b6b7ba inset;
+  transition: background-color 99999s ease-out;
 }
 
 .ecm-code-header__search-input::-webkit-search-cancel-button {

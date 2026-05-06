@@ -78,6 +78,7 @@ function CodeWrapperHeader() {
                 placeholder="Search for Extensions"
                 aria-label="Search for Extensions"
                 autoComplete="off"
+                size={22}
               />
             </label>
           </div>
