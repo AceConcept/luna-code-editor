@@ -3,28 +3,13 @@ import { EditorWorkbench } from "@/components/code-editor/EditorWorkbench";
 import { ExtensionsFileMenu } from "@/components/extensions/ExtensionsFileMenu";
 import { InstalledExtensionsPanel } from "@/components/extensions/InstalledExtensionsPanel";
 
-function HamburgerIcon() {
-  return (
-    <svg
-      className="ecm-code-header__menu-svg"
-      viewBox="0 0 20 16"
-      aria-hidden
-    >
-      <path
-        fill="currentColor"
-        d="M0 1.25h20v1.5H0zm0 6h20v1.5H0zm0 6h20v1.5H0z"
-      />
-    </svg>
-  );
-}
-
 function SearchIcon() {
   return (
     <svg
       className="ecm-code-header__search-svg"
       viewBox="0 0 18 18"
-      width={26}
-      height={26}
+      width={22}
+      height={22}
       aria-hidden
     >
       <circle
@@ -41,6 +26,21 @@ function SearchIcon() {
         strokeWidth="1.5"
         strokeLinecap="round"
         d="M11.25 11.25 16 16"
+      />
+    </svg>
+  );
+}
+
+function HamburgerIcon() {
+  return (
+    <svg
+      className="ecm-code-header__menu-svg"
+      viewBox="0 0 20 16"
+      aria-hidden
+    >
+      <path
+        fill="currentColor"
+        d="M0 1.25h20v1.5H0zm0 6h20v1.5H0zm0 6h20v1.5H0z"
       />
     </svg>
   );
@@ -68,7 +68,7 @@ function CodeWrapperHeader() {
         </div>
         <div className="ecm-code-header__search">
           <div className="ecm-code-header__search-field">
-            <div className="ecm-code-header__search-inner">
+            <label className="ecm-code-header__search-inner">
               <SearchIcon />
               <input
                 id="extensions-marketplace-search"
@@ -79,7 +79,7 @@ function CodeWrapperHeader() {
                 aria-label="Search for Extensions"
                 autoComplete="off"
               />
-            </div>
+            </label>
           </div>
         </div>
       </div>

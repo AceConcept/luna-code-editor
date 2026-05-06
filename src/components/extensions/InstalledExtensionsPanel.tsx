@@ -25,7 +25,7 @@ const installedExtensions = [
     description: "Provides a unified python environment experience",
     version: "v.2.12",
     updateAvailable: true,
-    iconSrc: `${ICON_BASE}/Variant6.png`,
+    iconSrc: "/extensions/code-icons/python-extension-icon.png",
   },
   {
     id: "spring-boot",
@@ -33,7 +33,7 @@ const installedExtensions = [
     description: "Tools for faster Java and Spring development.",
     version: "v.5.66",
     updateAvailable: false,
-    iconSrc: `${ICON_BASE}/Variant6-1.png`,
+    iconSrc: `${ICON_BASE}/Variant6.png`,
   },
   {
     id: "sonarqube",

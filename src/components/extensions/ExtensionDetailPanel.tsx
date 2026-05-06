@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-const PYTHON_ICON = "/extensions/code-icons/Component%203/Variant6.png";
+/** Same artwork as Python Environments list row (`python-extension-icon.png`). */
+const PYTHON_ICON = "/extensions/code-icons/python-extension-icon.png";
 const GEAR_ICON = "/extensions/ext-panel/Gear.svg";
 const EXPAND_ICON = "/extensions/ext-panel/expand.svg";
 const STARS_ICON = "/extensions/ext-panel/stars.svg";

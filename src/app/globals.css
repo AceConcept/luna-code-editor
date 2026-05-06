@@ -315,67 +315,73 @@ code {
 }
 
 .ecm-code-header__search {
-  display: flex;
-  height: 2.625rem; /* 42px */
-  min-width: 0;
-  max-width: 100%;
   justify-self: center;
-  align-items: center;
-  justify-content: center;
+  box-sizing: border-box;
+  width: min(40.75rem, 100%);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .ecm-code-header__search-field {
   display: flex;
-  width: 40.75rem; /* 652px at 16px root */
-  min-width: 0;
-  max-width: 100%;
   align-items: center;
   justify-content: center;
-  height: 2.625rem; /* 42px */
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.625rem; /* 42px */
   border-radius: 9999px;
-  background-color: #b0b0b0;
-  padding-right: 1rem;
-  padding-left: 1rem;
+  background-color: #b8b8b8;
+  padding: 0.4375rem 1.125rem;
 }
 
 .ecm-code-header__search-inner {
   display: inline-flex;
-  width: fit-content;
   max-width: 100%;
   min-width: 0;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  cursor: text;
+  font: inherit;
 }
 
 .ecm-code-header__search-svg {
   display: block;
-  height: 1.625rem; /* 26px */
-  width: 1.625rem; /* 26px */
   flex-shrink: 0;
-  color: #0f0f0f;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: rgb(27 27 27);
 }
 
 .ecm-code-header__search-input {
-  min-width: 0;
-  width: 19.875rem; /* 318px at 16px root */
+  box-sizing: border-box;
+  min-width: min(21ch, 100%);
   max-width: 100%;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   border: 0;
+  margin: 0;
   background: transparent;
   padding: 0;
   font-family: inherit;
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.125rem; /* 18px — close to VS Code Marketplace strip */
   font-weight: 400;
-  line-height: 1.2;
-  color: #0f0f0f;
+  line-height: 1.25;
+  color: rgb(24 24 24);
+  text-align: inherit;
   outline: none;
 }
 
 .ecm-code-header__search-input::placeholder {
-  font-size: 1.25rem; /* 20px */
-  font-weight: 400;
-  color: #1f1f1f;
+  font-size: inherit;
+  font-weight: inherit;
+  color: rgb(24 24 24 / 0.92);
   opacity: 1;
+}
+
+.ecm-code-header__search-input::-webkit-search-cancel-button {
+  display: none;
 }
 
 /* ─── Home editor shell (/) — hwb-*; isolated from extensions ewb-* ─── */
