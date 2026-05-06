@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import { ExtensionDetailPanel } from "@/components/extensions/ExtensionDetailPanel";
 
@@ -61,6 +68,10 @@ const installedExtensions = [
     iconSrc: `${ICON_BASE}/.net.png`,
   },
 ] as const;
+
+/** Matches `installedExtensions` Python row; drives `?extDetail=` deep links. */
+const PYTHON_ENVIRONMENTS_EXT_ID = "python-environments";
+const EXT_DETAIL_QUERY_KEY = "extDetail";
 
 function FilterFunnelIcon() {
   return (
@@ -137,12 +148,36 @@ function RowBody({
 }
 
 export function InstalledExtensionsPanel() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [layoutNarrowed, setLayoutNarrowed] = useState(false);
   /** Panel column width: stays open while opacity fades out on close. */
   const [panelTrackOpen, setPanelTrackOpen] = useState(false);
   const [panelRevealed, setPanelRevealed] = useState(false);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Avoid re-applying URL→state when `useSearchParams()` identity churns but `?query` is unchanged. */
+  const lastAppliedSearchQsRef = useRef<string | undefined>(undefined);
+
+  const syncExtDetailInUrl = useCallback(
+    (wantDetail: boolean) => {
+      if (typeof window === "undefined") return;
+      const p = new URLSearchParams(window.location.search);
+      const has = p.get(EXT_DETAIL_QUERY_KEY) === PYTHON_ENVIRONMENTS_EXT_ID;
+      if (has === wantDetail) return;
+
+      if (wantDetail) {
+        p.set(EXT_DETAIL_QUERY_KEY, PYTHON_ENVIRONMENTS_EXT_ID);
+      } else {
+        p.delete(EXT_DETAIL_QUERY_KEY);
+      }
+      const q = p.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router],
+  );
 
   useEffect(() => {
     return () => {
@@ -151,6 +186,72 @@ export function InstalledExtensionsPanel() {
     };
   }, []);
 
+  const searchQsKey = searchParams.toString();
+
+  /** URL / browser navigation → drawer state (only when `?…` string changes). */
+  useLayoutEffect(() => {
+    if (lastAppliedSearchQsRef.current === searchQsKey) return;
+    lastAppliedSearchQsRef.current = searchQsKey;
+
+    const detailInUrl =
+      new URLSearchParams(searchQsKey).get(EXT_DETAIL_QUERY_KEY) ===
+      PYTHON_ENVIRONMENTS_EXT_ID;
+
+    if (detailInUrl) {
+      if (openTimerRef.current) {
+        clearTimeout(openTimerRef.current);
+        openTimerRef.current = null;
+      }
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      setLayoutNarrowed(true);
+      setPanelTrackOpen(true);
+      setPanelRevealed(true);
+      return;
+    }
+
+    if (openTimerRef.current) {
+      clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+
+    setPanelRevealed((revealed) => {
+      if (!revealed) return revealed;
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = setTimeout(() => {
+        setPanelTrackOpen(false);
+        setLayoutNarrowed(false);
+        closeTimerRef.current = null;
+      }, PANEL_FADE_MS);
+      return false;
+    });
+  }, [searchQsKey]);
+
+  /** User removed `extDetail` while midway through open animation → reset list column width. */
+  useEffect(() => {
+    const detailInUrl =
+      new URLSearchParams(searchQsKey).get(EXT_DETAIL_QUERY_KEY) ===
+      PYTHON_ENVIRONMENTS_EXT_ID;
+    if (
+      detailInUrl ||
+      panelRevealed ||
+      panelTrackOpen ||
+      !layoutNarrowed
+    ) {
+      return;
+    }
+    if (openTimerRef.current) return;
+    if (closeTimerRef.current) return;
+    setLayoutNarrowed(false);
+  }, [
+    searchQsKey,
+    layoutNarrowed,
+    panelRevealed,
+    panelTrackOpen,
+  ]);
+
   const togglePython = useCallback(() => {
     if (panelRevealed) {
       if (openTimerRef.current) {
@@ -158,6 +259,7 @@ export function InstalledExtensionsPanel() {
         openTimerRef.current = null;
       }
       setPanelRevealed(false);
+      syncExtDetailInUrl(false);
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       closeTimerRef.current = setTimeout(() => {
         setPanelTrackOpen(false);
@@ -172,6 +274,7 @@ export function InstalledExtensionsPanel() {
         clearTimeout(closeTimerRef.current);
         closeTimerRef.current = null;
         setPanelRevealed(true);
+        syncExtDetailInUrl(true);
         return;
       }
       if (openTimerRef.current) {
@@ -179,6 +282,7 @@ export function InstalledExtensionsPanel() {
         openTimerRef.current = null;
       }
       setLayoutNarrowed(false);
+      syncExtDetailInUrl(false);
       return;
     }
 
@@ -190,9 +294,10 @@ export function InstalledExtensionsPanel() {
     openTimerRef.current = setTimeout(() => {
       setPanelTrackOpen(true);
       setPanelRevealed(true);
+      syncExtDetailInUrl(true);
       openTimerRef.current = null;
     }, LIST_CONTRACT_MS);
-  }, [layoutNarrowed, panelRevealed]);
+  }, [layoutNarrowed, panelRevealed, syncExtDetailInUrl]);
 
   const rowOpen = layoutNarrowed || panelTrackOpen;
 

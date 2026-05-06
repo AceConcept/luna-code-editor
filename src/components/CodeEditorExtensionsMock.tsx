@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { EditorWorkbench } from "@/components/code-editor/EditorWorkbench";
 import { ExtensionsFileMenu } from "@/components/extensions/ExtensionsFileMenu";
 import { InstalledExtensionsPanel } from "@/components/extensions/InstalledExtensionsPanel";
@@ -92,7 +93,11 @@ export function CodeEditorExtensionsMock() {
       benchClassPrefix="ewb"
       codeWrapperHeader={<CodeWrapperHeader />}
       leftSidebar={<ExtensionsFileMenu />}
-      mainPanel={<InstalledExtensionsPanel />}
+      mainPanel={
+        <Suspense fallback={null}>
+          <InstalledExtensionsPanel />
+        </Suspense>
+      }
       workspaceBackgroundImageSrc="/extensions/ext-background.jpg"
     />
   );
