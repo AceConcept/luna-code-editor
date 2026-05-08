@@ -31,7 +31,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          // Do not send X-Frame-Options: DENY, use CSP frame-ancestors instead.
           {
             key: "Content-Security-Policy",
             value: `frame-ancestors ${frameAncestors};`,
