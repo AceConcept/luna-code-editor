@@ -92,15 +92,6 @@ function FilterFunnelIcon() {
   );
 }
 
-function RowDecor() {
-  return (
-    <>
-      <div className="extl-row-decor-a" aria-hidden />
-      <div className="extl-row-decor-b" aria-hidden />
-    </>
-  );
-}
-
 function RowBody({
   ext,
 }: {
@@ -108,7 +99,6 @@ function RowBody({
 }) {
   return (
     <>
-      <RowDecor />
       <div className="extl-row-body">
         <div className="extl-row-icon-wrap">
           <Image
