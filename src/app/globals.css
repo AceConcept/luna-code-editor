@@ -1165,11 +1165,34 @@ code {
   cursor: pointer;
   appearance: none;
   text-align: left;
-  transition: opacity 0.15s ease;
 }
 
-.extl-row--btn:hover {
-  opacity: 0.95;
+.extl-row--btn::before,
+.extl-row:not(.extl-row--btn)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: rgb(0 0 0 / 0.22);
+  opacity: 0;
+  transition:
+    opacity 0.18s ease,
+    background-color 0.18s ease;
+  pointer-events: none;
+}
+
+/* Python row: strong overlay while detail panel is open */
+.extl-row--btn[aria-expanded="true"]::before {
+  opacity: 1;
+  background: rgb(0 0 0 / 0.38);
+}
+
+/* Same hover tint on every card; must tie or beat active rule specificity */
+.extl-row.extl-row--btn:hover::before,
+.extl-row:not(.extl-row--btn):hover::before {
+  opacity: 1;
+  background: rgb(0 0 0 / 0.22);
 }
 
 .extl-row--btn:focus-visible {
@@ -1179,6 +1202,7 @@ code {
 
 .extl-row-body {
   position: relative;
+  z-index: 1;
   display: flex;
   height: 100%;
   min-height: 0;
