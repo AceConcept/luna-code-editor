@@ -5,17 +5,20 @@ initOpenNextCloudflareForDev();
 
 function buildFrameAncestors(): string {
   const raw = process.env.WAYPOINT_FRAME_ANCESTORS ?? "";
-  const ancestors = raw
+  const defaults = [
+    "'self'",
+    "https://*.vercel.app",
+  ];
+  const ancestors = [
+    ...defaults,
+    ...raw
     .split(",")
     .map((value) => value.trim())
-    .filter(Boolean);
+    .filter(Boolean),
+  ];
 
-  // Keep self by default so same-origin embeds continue to work.
-  if (!ancestors.includes("'self'")) {
-    ancestors.unshift("'self'");
-  }
-
-  return ancestors.join(" ");
+  // Deduplicate while preserving order.
+  return [...new Set(ancestors)].join(" ");
 }
 
 const nextConfig: NextConfig = {
