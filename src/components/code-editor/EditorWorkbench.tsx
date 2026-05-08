@@ -853,7 +853,7 @@ export function EditorWorkbench({
           {mainPanel ?? (
           <>
           <div
-            className="flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-x-auto border-b border-[#2b2b2b]/70 bg-[#171818] px-0 [&_*]:cursor-pointer"
+            className="flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-x-auto bg-[#171818] px-0 [&_*]:cursor-pointer"
             role="tablist"
           >
             {editorTabs.map((tab) => {
