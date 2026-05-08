@@ -740,8 +740,12 @@ export function EditorWorkbench({
       <header className={wb(p, "layout-header")} aria-label="Layout bar">
         <nav aria-label="Menu bar" className={wb(p, "menubar")}>
           {layoutBarMenus.map((label) => (
-            <button key={label} type="button" className={wb(p, "menubar-btn")}>
-              <span className={wb(p, "menubar-label")}>{label}</span>
+            <button
+              key={label}
+              type="button"
+              className={`${wb(p, "menubar-btn")} wb-topbar-btn`}
+            >
+              <span className={`${wb(p, "menubar-label")} wb-topbar-ink`}>{label}</span>
             </button>
           ))}
         </nav>
@@ -757,10 +761,10 @@ export function EditorWorkbench({
               <button
                 key={icon.src}
                 type="button"
-                className={wb(p, "layout-tool")}
+                className={`${wb(p, "layout-tool")} wb-topbar-btn`}
                 aria-label={icon.label}
               >
-                <span className={wb(p, "layout-tool-ico-wrap")}>
+                <span className={`${wb(p, "layout-tool-ico-wrap")} wb-topbar-ink`}>
                   <Image
                     src={icon.src}
                     alt=""
@@ -786,9 +790,9 @@ export function EditorWorkbench({
                 key={icon.src}
                 type="button"
                 aria-label={icon.label}
-                className={wb(p, "window-tool")}
+                className={`${wb(p, "window-tool")} wb-topbar-btn`}
               >
-                <span className={wb(p, "window-tool-ico-wrap")}>
+                <span className={`${wb(p, "window-tool-ico-wrap")} wb-topbar-ink`}>
                   <Image
                     src={icon.src}
                     alt=""

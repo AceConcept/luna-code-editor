@@ -434,6 +434,40 @@ code {
   border-radius: 0;
 }
 
+.hwb-layout-header .wb-topbar-btn,
+.ewb-layout-header .wb-topbar-btn {
+  transition: background-color 0.15s ease;
+}
+
+.hwb-layout-header .wb-topbar-btn:hover,
+.hwb-layout-header .wb-topbar-btn:focus-visible,
+.hwb-layout-header .wb-topbar-btn[data-active="true"],
+.ewb-layout-header .wb-topbar-btn:hover,
+.ewb-layout-header .wb-topbar-btn:focus-visible,
+.ewb-layout-header .wb-topbar-btn[data-active="true"] {
+  background-color: #2e2e2e;
+}
+
+.hwb-layout-header .wb-topbar-btn:focus-visible,
+.ewb-layout-header .wb-topbar-btn:focus-visible {
+  outline: none;
+}
+
+.hwb-layout-header .wb-topbar-ink,
+.ewb-layout-header .wb-topbar-ink {
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.hwb-layout-header .wb-topbar-btn:hover .wb-topbar-ink,
+.hwb-layout-header .wb-topbar-btn:focus-visible .wb-topbar-ink,
+.hwb-layout-header .wb-topbar-btn[data-active="true"] .wb-topbar-ink,
+.ewb-layout-header .wb-topbar-btn:hover .wb-topbar-ink,
+.ewb-layout-header .wb-topbar-btn:focus-visible .wb-topbar-ink,
+.ewb-layout-header .wb-topbar-btn[data-active="true"] .wb-topbar-ink {
+  opacity: 1;
+}
+
 .hwb-menubar {
   display: flex;
   min-height: 0;
@@ -444,7 +478,7 @@ code {
 
 .hwb-menubar-btn {
   display: flex;
-  height: 3.25rem;
+  height: 3rem;
   flex-shrink: 0;
   align-items: center;
   white-space: nowrap;
@@ -457,25 +491,9 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.hwb-menubar-btn:hover,
-.hwb-menubar-btn:focus-visible {
-  background-color: #2e2e2e;
-}
-
-.hwb-menubar-btn:focus-visible {
-  outline: none;
-}
-
 .hwb-menubar-label {
   user-select: none;
   letter-spacing: 0.025em;
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.hwb-menubar-btn:hover .hwb-menubar-label,
-.hwb-menubar-btn:focus-visible .hwb-menubar-label {
-  opacity: 1;
 }
 
 .hwb-layout-controls {
@@ -510,18 +528,7 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.hwb-layout-tool:hover {
-  background-color: #2e2e2e;
-}
-
 .hwb-layout-tool-ico-wrap {
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.hwb-layout-tool:hover .hwb-layout-tool-ico-wrap,
-.hwb-layout-tool:focus-visible .hwb-layout-tool-ico-wrap {
-  opacity: 1;
 }
 
 .hwb-layout-tool-img {
@@ -533,7 +540,7 @@ code {
 
 .hwb-window-tool {
   display: flex;
-  height: 3.25rem;
+  height: 3rem;
   width: 4rem;
   flex-shrink: 0;
   align-items: center;
@@ -544,18 +551,7 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.hwb-window-tool:hover {
-  background-color: #2e2e2e;
-}
-
 .hwb-window-tool-ico-wrap {
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.hwb-window-tool:hover .hwb-window-tool-ico-wrap,
-.hwb-window-tool:focus-visible .hwb-window-tool-ico-wrap {
-  opacity: 1;
 }
 
 .hwb-window-tool-img {
@@ -780,7 +776,7 @@ code {
 
 .ewb-menubar-btn {
   display: flex;
-  height: 3.25rem;
+  height: 3rem;
   flex-shrink: 0;
   align-items: center;
   white-space: nowrap;
@@ -793,25 +789,9 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.ewb-menubar-btn:hover,
-.ewb-menubar-btn:focus-visible {
-  background-color: #2e2e2e;
-}
-
-.ewb-menubar-btn:focus-visible {
-  outline: none;
-}
-
 .ewb-menubar-label {
   user-select: none;
   letter-spacing: 0.025em;
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.ewb-menubar-btn:hover .ewb-menubar-label,
-.ewb-menubar-btn:focus-visible .ewb-menubar-label {
-  opacity: 1;
 }
 
 .ewb-layout-controls {
@@ -846,18 +826,7 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.ewb-layout-tool:hover {
-  background-color: #2e2e2e;
-}
-
 .ewb-layout-tool-ico-wrap {
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.ewb-layout-tool:hover .ewb-layout-tool-ico-wrap,
-.ewb-layout-tool:focus-visible .ewb-layout-tool-ico-wrap {
-  opacity: 1;
 }
 
 .ewb-layout-tool-img {
@@ -869,7 +838,7 @@ code {
 
 .ewb-window-tool {
   display: flex;
-  height: 3.25rem;
+  height: 3rem;
   width: 4rem;
   flex-shrink: 0;
   align-items: center;
@@ -880,18 +849,7 @@ code {
   transition: background-color 0.15s ease;
 }
 
-.ewb-window-tool:hover {
-  background-color: #2e2e2e;
-}
-
 .ewb-window-tool-ico-wrap {
-  opacity: 0.5;
-  transition: opacity 0.15s ease;
-}
-
-.ewb-window-tool:hover .ewb-window-tool-ico-wrap,
-.ewb-window-tool:focus-visible .ewb-window-tool-ico-wrap {
-  opacity: 1;
 }
 
 .ewb-window-tool-img {
