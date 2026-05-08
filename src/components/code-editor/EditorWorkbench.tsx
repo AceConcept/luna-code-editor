@@ -863,7 +863,7 @@ export function EditorWorkbench({
                 key={tab.label}
                 className={
                   isActive
-                    ? "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border border-b-0 border-white/15 bg-black transition-colors duration-150 hover:bg-[#141414]"
+                    ? "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border-0 bg-black transition-colors duration-150 hover:bg-[#141414]"
                     : "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border border-transparent border-r-[#4A4A4A] bg-[#252525] transition-colors duration-150 hover:bg-[#343434]"
                 }
               >
