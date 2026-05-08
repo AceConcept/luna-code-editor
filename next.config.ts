@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+
+initOpenNextCloudflareForDev();
 
 function buildFrameAncestors(): string {
   const raw = process.env.WAYPOINT_FRAME_ANCESTORS ?? "";

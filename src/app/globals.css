@@ -454,19 +454,16 @@ code {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
   color: inherit;
-  box-shadow: none;
-  --tw-ring-shadow: 0 0 #0000;
   transition: background-color 0.15s ease;
 }
 
-.hwb-menubar-btn:hover {
+.hwb-menubar-btn:hover,
+.hwb-menubar-btn:focus-visible {
   background-color: #2e2e2e;
-  box-shadow: none;
 }
 
 .hwb-menubar-btn:focus-visible {
   outline: none;
-  box-shadow: none;
 }
 
 .hwb-menubar-label {
@@ -793,19 +790,16 @@ code {
   padding-left: 0.75rem;
   padding-right: 0.75rem;
   color: inherit;
-  box-shadow: none;
-  --tw-ring-shadow: 0 0 #0000;
   transition: background-color 0.15s ease;
 }
 
-.ewb-menubar-btn:hover {
+.ewb-menubar-btn:hover,
+.ewb-menubar-btn:focus-visible {
   background-color: #2e2e2e;
-  box-shadow: none;
 }
 
 .ewb-menubar-btn:focus-visible {
   outline: none;
-  box-shadow: none;
 }
 
 .ewb-menubar-label {
