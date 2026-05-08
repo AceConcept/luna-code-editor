@@ -7,6 +7,8 @@ function buildFrameAncestors(): string {
   const raw = process.env.WAYPOINT_FRAME_ANCESTORS ?? "";
   const defaults = [
     "'self'",
+    "https://*.workers.dev",
+    "https://*.pages.dev",
     "https://*.vercel.app",
   ];
   const ancestors = [
