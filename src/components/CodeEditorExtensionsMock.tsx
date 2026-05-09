@@ -1,7 +1,11 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useState } from "react";
 import { EditorWorkbench } from "@/components/code-editor/EditorWorkbench";
 import { ExtensionsFileMenu } from "@/components/extensions/ExtensionsFileMenu";
 import { InstalledExtensionsPanel } from "@/components/extensions/InstalledExtensionsPanel";
+
+const SEARCH_PLACEHOLDER = "Search for Extensions";
 
 function SearchIcon() {
   return (
@@ -47,6 +51,12 @@ function HamburgerIcon() {
 }
 
 function CodeWrapperHeader() {
+  const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
+
+  /** Idle chrome (icon + label) — hidden once the user focuses or has typed text. */
+  const showDecor = !focused && query === "";
+
   return (
     <div
       id="code-wrapper-header"
@@ -67,21 +77,44 @@ function CodeWrapperHeader() {
           <span className="ecm-code-header__title">Extensions</span>
         </div>
         <div className="ecm-code-header__search">
-          <div className="ecm-code-header__search-field">
-            <label className="ecm-code-header__search-inner">
-              <SearchIcon />
-              <input
-                id="extensions-marketplace-search"
-                className="ecm-code-header__search-input"
-                type="search"
-                name="extensions-marketplace-search"
-                placeholder="Search for Extensions"
-                aria-label="Search for Extensions"
-                autoComplete="off"
-                size={22}
-              />
-            </label>
-          </div>
+          <label
+            className="ecm-code-header__search-field"
+            htmlFor="extensions-marketplace-search"
+          >
+            <input
+              id="extensions-marketplace-search"
+              className={
+                showDecor
+                  ? "ecm-code-header__search-input ecm-code-header__search-input--capture"
+                  : "ecm-code-header__search-input ecm-code-header__search-input--active"
+              }
+              type="search"
+              name="extensions-marketplace-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              autoComplete="off"
+              aria-label={SEARCH_PLACEHOLDER}
+            />
+            {showDecor ? (
+              <div className="ecm-code-header__search-show" aria-hidden>
+                <div className="ecm-code-header__search-cluster">
+                  <span className="ecm-code-header__search-phrase">
+                    <span
+                      className="ecm-code-header__search-phrase-icon"
+                      aria-hidden
+                    >
+                      <SearchIcon />
+                    </span>
+                    <span className="ecm-code-header__search-fake-text ecm-code-header__search-fake-text--placeholder">
+                      {SEARCH_PLACEHOLDER}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            ) : null}
+          </label>
         </div>
       </div>
     </div>
