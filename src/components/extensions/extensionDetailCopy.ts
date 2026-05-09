@@ -57,6 +57,10 @@ export const extensionDetailCopy: Record<
         body: "with rich support for the Python language (for all actively supported Python versions), providing access points for extensions to seamlessly integrate and offer support for IntelliSense (Pylance), debugging (Python Debugger), formatting, linting, code navigation.",
         linkExtensionWord: true,
       },
+      {
+        heading: "Tooling and diagnostics",
+        body: "Workspace symbols, signature help, and import resolution stay in sync with your selected interpreter and virtual environment. Diagnostic squiggles surface type issues and deprecated APIs early, while code actions suggest fixes that match your formatter and linter configuration. For notebooks, cell boundaries and kernel selection integrate cleanly so mixed file layouts remain predictable from edit to run.",
+      },
     ],
   },
   "spring-boot": {
@@ -79,11 +83,15 @@ export const extensionDetailCopy: Record<
     proseTitle: "Spring Boot in Pharecia Code",
     proseBlocks: [
       {
-        body: "The Spring Boot extension connects your workspace to first-class Java language features—run configurations, live application dashboard hooks, and templates that stay aligned with upstream Spring guides.",
+        body: "The Spring Boot extension connects your workspace to first-class Java language features—run configurations, live application dashboard hooks, and templates that stay aligned with upstream Spring guides. It recognizes Gradle and Maven layouts, surfaces `@ConfigurationProperties` and profile-specific files, and keeps launch presets tied to the module you are editing.",
       },
       {
         heading: "Java developer workflow",
-        body: "Navigate beans, endpoints, and configuration with minimal friction. Pair it with your favorite test runner for a consistent loop from edit to deploy.",
+        body: "Navigate beans, endpoints, and configuration with minimal friction. Pair it with your favorite test runner for a consistent loop from edit to deploy. Live hovers show request mappings, conditional beans, and actuator metadata where available so you spend less time hunting through XML or YAML for the same answer.",
+      },
+      {
+        heading: "From scaffold to production",
+        body: "Use Spring Initializr without leaving the editor to bootstrap services, batch jobs, or reactive stacks. After generation, refactor packages safely with rename-aware imports and let the tooling keep your `application.yml` fragments organized. When incidents hit, jump from log stack traces back to controllers and filters with one click.",
       },
     ],
   },
@@ -107,11 +115,15 @@ export const extensionDetailCopy: Record<
     proseTitle: "SonarQube for IDE",
     proseBlocks: [
       {
-        body: "See quality gates before you push—highlights appear inline with quick-fix suggestions when SonarQube provides them. Connect to your project binding to sync severities with the server.",
+        body: "See quality gates before you push—highlights appear inline with quick-fix suggestions when SonarQube provides them. Connect to your project binding to sync severities with the server. Issue locations map cleanly across renamed files, and diffs show whether a finding is new so noisy legacy debt does not drown out regressions you just introduced.",
       },
       {
         heading: "Team-ready",
-        body: "Developers can jump from an issue to documentation or suppress with a documented reason, keeping security and maintainability conversations in one place.",
+        body: "Developers can jump from an issue to documentation or suppress with a documented reason, keeping security and maintainability conversations in one place. Hotspots and security categories surface early in the pull request loop, while coverage and duplication hints give reviewers shared vocabulary for what “done” means on each change.",
+      },
+      {
+        heading: "Focused triage",
+        body: "Filter by rule repository, tag, or impact to build personal dashboards that match your squad’s policy pack. When the server rule set updates, the IDE refreshes expectations without forcing a context switch—so “why is this suddenly red?” stays explainable from the gutter.",
       },
     ],
   },
@@ -135,11 +147,15 @@ export const extensionDetailCopy: Record<
     proseTitle: "SQLite workspace integration",
     proseBlocks: [
       {
-        body: "Open .sqlite and .db assets from the explorer, run ad hoc SQL against attached files, and export result grids when you need a snapshot for teammates.",
+        body: "Open .sqlite and .db assets from the explorer, run ad hoc SQL against attached files, and export result grids when you need a snapshot for teammates. Bind parameters safely for repeat runs, pin frequently used queries beside your code, and preview schema diffs when migrations land from another branch.",
       },
       {
         heading: "Lightweight databases",
-        body: "Ideal for local features, fixtures, and embedded projects where a full server stack is unnecessary.",
+        body: "Ideal for local features, fixtures, and embedded projects where a full server stack is unnecessary. Transaction boundaries stay visible in the status bar, and WAL versus rollback modes are spelled out so you do not accidentally leave a writer lock behind when switching tasks.",
+      },
+      {
+        heading: "Schema awareness",
+        body: "Autocompletion pulls live column names and FK targets from attached databases so refactor moves stay honest. For larger files, outline views jump to tables and indexes without expanding every `CREATE` statement by hand.",
       },
     ],
   },
@@ -163,11 +179,19 @@ export const extensionDetailCopy: Record<
     proseTitle: "ESP-IDF development",
     proseBlocks: [
       {
-        body: "Target firmware with CMake presets that match ESP-IDF releases. Switch MCUs from the status bar when your workspace includes multiple board profiles.",
+        body: "Target firmware with CMake presets that match ESP-IDF releases. Switch MCUs from the status bar when your workspace includes multiple board profiles. Flash size, partition tables, and secure boot hints carry through from `sdkconfig` into build diagnostics so mismatched targets surface before you burn a device image.",
+      },
+      {
+        heading: "Toolchain and configuration",
+        body: "Pick a tagged ESP-IDF checkout or containerized toolchain and let the extension keep `idf.py` tasks, Python environment, and compiler discovery in agreement. `menuconfig` edits round-trip cleanly into stored defaults, and component paths stay indexed for jump-to-definition across CMake components and third-party libs you vendor into `components/`. When a dependency revs, the IDE highlights Kconfig deltas that need a rebuild.",
       },
       {
         heading: "Hardware loop",
-        body: "Capture UART logs alongside build output so firmware bring-up stays in one panel.",
+        body: "Capture UART logs alongside build output so firmware bring-up stays in one panel. Decode panic backtraces when `configASSERT` fires, filter noisy boot banners, and time-stamp lines when reproducing rare RF or power glitches. JTAG/OpenOCD attach is one click away from the same breakpoint set you used on the last board.",
+      },
+      {
+        heading: "Day-two engineering",
+        body: "OTA and partition migration notes appear next to the images you flash so field upgrades stay traceable. Power-profiling hooks align with the peripheral drivers you selected, and NimBLE or Wi-Fi coexistence reminders show up when configs collide. Whether you are shipping a low-duty sensor or a UI-heavy gadget, the loop from edit, flash, to serial evidence stays in Pharecia without juggling three terminals.",
       },
     ],
   },
@@ -191,11 +215,15 @@ export const extensionDetailCopy: Record<
     proseTitle: ".NET Extension Pack",
     proseBlocks: [
       {
-        body: "Install once to light up solution loading, Razor helpers, and IntelliCode-friendly completions tuned for modern C# patterns.",
+        body: "Install once to light up solution loading, Razor helpers, and IntelliCode-friendly completions tuned for modern C# patterns. Multi-target frameworks resolve consistently in shared projects, and source-generated APIs stay indexed as you expand partials or `Regex`-derived types.",
       },
       {
         heading: "Ship with confidence",
-        body: "Pair with your preferred formatter and analyzer profile—Pharecia keeps the integration paths stable across SDK updates.",
+        body: "Pair with your preferred formatter and analyzer profile—Pharecia keeps the integration paths stable across SDK updates. Test discovery picks up xUnit, NUnit, or MSTest without hand-maintaining file lists, and coverage overlays point to the exact branch that missed assertions.",
+      },
+      {
+        heading: "Full-stack .NET",
+        body: "Minimal APIs, gRPC, and Blazor routes share hover text for routes and validation attributes. Container tooling ties published outputs to the Dockerfile you edit in-repo, so promoting a build to staging stays one cohesive story from commit to compose.",
       },
     ],
   },

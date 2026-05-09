@@ -65,6 +65,7 @@ export function ExtensionDetailPanel({
 }) {
   const meta = getInstalledExtension(extensionId);
   const copy = extensionDetailCopy[extensionId];
+  const hasUpdate = meta.updateAvailable;
   const router = useRouter();
   const [downloadPct, setDownloadPct] = useState(0);
   const [downloadActive, setDownloadActive] = useState(false);
@@ -127,7 +128,7 @@ export function ExtensionDetailPanel({
   }, [downloadActive, clearTimers]);
 
   const onDownloadClick = () => {
-    if (downloadActive) return;
+    if (!hasUpdate || downloadActive) return;
     clearTimers();
     setDownloadPct(0);
     setDownloadActive(true);
@@ -217,18 +218,24 @@ export function ExtensionDetailPanel({
         <div className="extp-body-below">
           <div
             className={
-              downloadActive
+              downloadActive && hasUpdate
                 ? "extp-actions-wrap extp-actions-wrap--downloading"
                 : "extp-actions-wrap"
             }
           >
             <div className="extp-actions-row">
-              <div className="extp-dl-split">
+              <div
+                className={
+                  hasUpdate
+                    ? "extp-dl-split"
+                    : "extp-dl-split extp-dl-split--uninstall"
+                }
+              >
                 <button
                   type="button"
                   className="extp-dl-primary"
-                  disabled={downloadActive}
-                  onClick={onDownloadClick}
+                  disabled={hasUpdate && downloadActive}
+                  onClick={hasUpdate ? onDownloadClick : undefined}
                 >
                   <Image
                     src={DOWNLOAD_BTN_ICON}
@@ -240,13 +247,21 @@ export function ExtensionDetailPanel({
                     unoptimized
                     aria-hidden
                   />
-                  {downloadActive ? "Downloading" : "Download Update"}
+                  {hasUpdate
+                    ? downloadActive
+                      ? "Downloading"
+                      : "Download Update"
+                    : "Uninstall"}
                 </button>
                 <button
                   type="button"
-                  aria-label="Other download options"
+                  aria-label={
+                    hasUpdate
+                      ? "Other download options"
+                      : "Other uninstall options"
+                  }
                   className="extp-dl-caret-btn"
-                  disabled={downloadActive}
+                  disabled={hasUpdate && downloadActive}
                 >
                   <Image
                     src={DL_CARET_ICON}
@@ -270,7 +285,7 @@ export function ExtensionDetailPanel({
                 Auto Updates
               </label>
             </div>
-            {downloadActive ? (
+            {downloadActive && hasUpdate ? (
               <div
                 className="extp-dl-progress"
                 role="progressbar"
