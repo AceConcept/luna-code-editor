@@ -10,67 +10,17 @@ import {
 } from "react";
 import Image from "next/image";
 import { ExtensionDetailPanel } from "@/components/extensions/ExtensionDetailPanel";
+import {
+  type InstalledExtensionId,
+  installedExtensions,
+  isInstalledExtensionId,
+} from "@/components/extensions/installedExtensionsData";
 
 /** List narrows before the panel mounts; no CSS transition on list width — avoids scrollbar flicker. */
 const LIST_CONTRACT_MS = 300;
 /** Panel `opacity` fade duration; list stays narrowed until fade-out finishes on close. */
 const PANEL_FADE_MS = 300;
 
-const ICON_BASE = "/extensions/code-icons/Component%203";
-
-const installedExtensions = [
-  {
-    id: "python-environments",
-    title: "Python Environments",
-    description: "Provides a unified python environment experience",
-    version: "v.2.12",
-    updateAvailable: true,
-    iconSrc: "/extensions/code-icons/python-extension-icon.png",
-  },
-  {
-    id: "spring-boot",
-    title: "Spring Boot Extension",
-    description: "Tools for faster Java and Spring development.",
-    version: "v.5.66",
-    updateAvailable: false,
-    iconSrc: `${ICON_BASE}/Variant6.png`,
-  },
-  {
-    id: "sonarqube",
-    title: "SonarQube for IDE",
-    description: "Performs static analysis to detect technical debt.",
-    version: "v.2.311",
-    updateAvailable: true,
-    iconSrc: `${ICON_BASE}/Variant5.png`,
-  },
-  {
-    id: "sqlite",
-    title: "SQLite",
-    description: "A serverless, file-based SQL database engine.",
-    version: "v.3.122",
-    updateAvailable: false,
-    iconSrc: `${ICON_BASE}/sql.png`,
-  },
-  {
-    id: "esp-idf",
-    title: "ESP-IDF",
-    description: "The official development framework for ESP32 chips.",
-    version: "v.8.5",
-    updateAvailable: false,
-    iconSrc: `${ICON_BASE}/esp.png`,
-  },
-  {
-    id: "dotnet-pack",
-    title: ".NET Extension Pack",
-    description: "Essential tools for building C# applications easily.",
-    version: "v.3.122",
-    updateAvailable: false,
-    iconSrc: `${ICON_BASE}/.net.png`,
-  },
-] as const;
-
-/** Matches `installedExtensions` Python row; drives `?extDetail=` deep links. */
-const PYTHON_ENVIRONMENTS_EXT_ID = "python-environments";
 const EXT_DETAIL_QUERY_KEY = "extDetail";
 
 function FilterFunnelIcon() {
@@ -161,17 +111,17 @@ export function InstalledExtensionsPanel() {
     });
   }, []);
 
-  const syncExtDetailInUrl = useCallback(
-    (wantDetail: boolean) => {
+  const setExtDetailInUrl = useCallback(
+    (id: InstalledExtensionId | null) => {
       if (typeof window === "undefined") return;
       const p = new URLSearchParams(window.location.search);
-      const has = p.get(EXT_DETAIL_QUERY_KEY) === PYTHON_ENVIRONMENTS_EXT_ID;
-      if (has === wantDetail) return;
-
-      if (wantDetail) {
-        p.set(EXT_DETAIL_QUERY_KEY, PYTHON_ENVIRONMENTS_EXT_ID);
-      } else {
+      const cur = p.get(EXT_DETAIL_QUERY_KEY);
+      if (id === null) {
+        if (!cur) return;
         p.delete(EXT_DETAIL_QUERY_KEY);
+      } else {
+        if (cur === id) return;
+        p.set(EXT_DETAIL_QUERY_KEY, id);
       }
       const q = p.toString();
       router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
@@ -193,9 +143,10 @@ export function InstalledExtensionsPanel() {
     if (lastAppliedSearchQsRef.current === searchQsKey) return;
     lastAppliedSearchQsRef.current = searchQsKey;
 
-    const detailInUrl =
-      new URLSearchParams(searchQsKey).get(EXT_DETAIL_QUERY_KEY) ===
-      PYTHON_ENVIRONMENTS_EXT_ID;
+    const detailParam = new URLSearchParams(searchQsKey).get(
+      EXT_DETAIL_QUERY_KEY,
+    );
+    const detailInUrl = isInstalledExtensionId(detailParam);
 
     if (detailInUrl) {
       prevHadExtDetailInUrlRef.current = true;
@@ -234,9 +185,10 @@ export function InstalledExtensionsPanel() {
 
   /** URL lost `extDetail` during list-narrow-only phase → unwrap list width. */
   useEffect(() => {
-    const detailInUrl =
-      new URLSearchParams(searchQsKey).get(EXT_DETAIL_QUERY_KEY) ===
-      PYTHON_ENVIRONMENTS_EXT_ID;
+    const detailParam = new URLSearchParams(searchQsKey).get(
+      EXT_DETAIL_QUERY_KEY,
+    );
+    const detailInUrl = isInstalledExtensionId(detailParam);
     if (
       detailInUrl ||
       panelRevealed ||
@@ -249,69 +201,102 @@ export function InstalledExtensionsPanel() {
     setLayoutNarrowed(false);
   }, [searchQsKey, layoutNarrowed, panelRevealed, panelTrackOpen]);
 
-  const togglePython = useCallback(() => {
-    if (panelRevealed) {
-      if (openTimerRef.current) {
-        clearTimeout(openTimerRef.current);
-        openTimerRef.current = null;
-      }
-      setPanelRevealed(false);
-      syncExtDetailInUrl(false);
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = setTimeout(() => {
-        setPanelTrackOpen(false);
-        setLayoutNarrowed(false);
-        closeTimerRef.current = null;
-      }, PANEL_FADE_MS);
-      return;
-    }
+  const toggleExtension = useCallback(
+    (extId: InstalledExtensionId) => {
+      if (typeof window === "undefined") return;
+      const currentInUrl = new URLSearchParams(window.location.search).get(
+        EXT_DETAIL_QUERY_KEY,
+      );
+      const currentId = isInstalledExtensionId(currentInUrl)
+        ? currentInUrl
+        : null;
 
-    if (layoutNarrowed) {
-      if (closeTimerRef.current) {
+      if (panelRevealed) {
+        if (currentId !== null && currentId !== extId) {
+          setExtDetailInUrl(extId);
+          return;
+        }
+        if (openTimerRef.current) {
+          clearTimeout(openTimerRef.current);
+          openTimerRef.current = null;
+        }
+        setPanelRevealed(false);
+        setExtDetailInUrl(null);
+        if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = setTimeout(() => {
+          setPanelTrackOpen(false);
+          setLayoutNarrowed(false);
+          closeTimerRef.current = null;
+        }, PANEL_FADE_MS);
+        return;
+      }
+
+      if (layoutNarrowed) {
+        if (closeTimerRef.current) {
+          clearTimeout(closeTimerRef.current);
+          closeTimerRef.current = null;
+          setPanelRevealed(true);
+          setExtDetailInUrl(extId);
+          return;
+        }
+        if (openTimerRef.current) {
+          clearTimeout(openTimerRef.current);
+          openTimerRef.current = null;
+          setLayoutNarrowed(false);
+          setExtDetailInUrl(null);
+          return;
+        }
+        return;
+      }
+
+      if (panelTrackOpen && closeTimerRef.current) {
         clearTimeout(closeTimerRef.current);
         closeTimerRef.current = null;
         setPanelRevealed(true);
-        syncExtDetailInUrl(true);
+        setExtDetailInUrl(extId);
         return;
       }
-      if (openTimerRef.current) {
-        clearTimeout(openTimerRef.current);
+
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      setLayoutNarrowed(true);
+      openTimerRef.current = setTimeout(() => {
+        setPanelTrackOpen(true);
+        setExtDetailInUrl(extId);
+        schedulePanelFadeIn();
         openTimerRef.current = null;
-        setLayoutNarrowed(false);
-        syncExtDetailInUrl(false);
-        return;
-      }
-      return;
-    }
-
-    if (panelTrackOpen && closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-      setPanelRevealed(true);
-      syncExtDetailInUrl(true);
-      return;
-    }
-
-    if (closeTimerRef.current) {
-      clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
-    setLayoutNarrowed(true);
-    openTimerRef.current = setTimeout(() => {
-      setPanelTrackOpen(true);
-      syncExtDetailInUrl(true);
-      schedulePanelFadeIn();
-      openTimerRef.current = null;
-    }, LIST_CONTRACT_MS);
-  }, [
-    layoutNarrowed,
-    panelRevealed,
-    panelTrackOpen,
-    syncExtDetailInUrl,
-    schedulePanelFadeIn,
-  ]);
+      }, LIST_CONTRACT_MS);
+    },
+    [
+      layoutNarrowed,
+      panelRevealed,
+      panelTrackOpen,
+      setExtDetailInUrl,
+      schedulePanelFadeIn,
+    ],
+  );
 
   const rowOpen = layoutNarrowed || panelTrackOpen;
+
+  const detailParam = searchParams.get(EXT_DETAIL_QUERY_KEY);
+  const extIdFromUrl = isInstalledExtensionId(detailParam)
+    ? detailParam
+    : null;
+
+  /** `useSearchParams` can lag one frame behind `router.replace`; cache last valid id for the open panel. */
+  const [cachedExtId, setCachedExtId] = useState<InstalledExtensionId | null>(
+    null,
+  );
+  useEffect(() => {
+    if (extIdFromUrl) setCachedExtId(extIdFromUrl);
+  }, [extIdFromUrl]);
+  useEffect(() => {
+    if (!extIdFromUrl && !panelTrackOpen) setCachedExtId(null);
+  }, [extIdFromUrl, panelTrackOpen]);
+
+  const activeExtId = extIdFromUrl ?? cachedExtId;
 
   return (
     <section className="extl-section" aria-label="Installed extensions list">
@@ -338,27 +323,19 @@ export function InstalledExtensionsPanel() {
           <div className="extl-scroll">
             <ul className="extl-ul">
               {installedExtensions.map((ext) => {
-                const isPython = ext.id === "python-environments";
-                if (isPython) {
-                  return (
-                    <li key={ext.id} className="extl-li">
-                      <button
-                        type="button"
-                        className="extl-row extl-row--btn"
-                        onClick={togglePython}
-                        aria-expanded={panelRevealed}
-                        aria-controls="extension-panel"
-                      >
-                        <RowBody ext={ext} />
-                      </button>
-                    </li>
-                  );
-                }
+                const isExpandedRow =
+                  panelRevealed && activeExtId === ext.id;
                 return (
                   <li key={ext.id} className="extl-li">
-                    <article className="extl-row" aria-label={ext.title}>
+                    <button
+                      type="button"
+                      className="extl-row extl-row--btn"
+                      onClick={() => toggleExtension(ext.id)}
+                      aria-expanded={isExpandedRow}
+                      aria-controls="extension-panel"
+                    >
                       <RowBody ext={ext} />
-                    </article>
+                    </button>
                   </li>
                 );
               })}
@@ -376,7 +353,9 @@ export function InstalledExtensionsPanel() {
           inert={panelRevealed ? undefined : true}
         >
           <div className="extl-panel-scroll">
-            <ExtensionDetailPanel />
+            {activeExtId ? (
+              <ExtensionDetailPanel extensionId={activeExtId} />
+            ) : null}
           </div>
         </div>
       </div>

@@ -4,9 +4,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-
-/** Same artwork as Python Environments list row (`python-extension-icon.png`). */
-const PYTHON_ICON = "/extensions/code-icons/python-extension-icon.png";
+import { extensionDetailCopy } from "@/components/extensions/extensionDetailCopy";
+import {
+  type InstalledExtensionId,
+  getInstalledExtension,
+} from "@/components/extensions/installedExtensionsData";
 const GEAR_ICON = "/extensions/ext-panel/Gear.svg";
 const EXPAND_ICON = "/extensions/ext-panel/expand.svg";
 const STARS_ICON = "/extensions/ext-panel/stars.svg";
@@ -55,8 +57,14 @@ function IconBtn({ label, src }: { label: string; src: string }) {
 const DOWNLOAD_MS = 2800;
 const HOLD_AT_100_MS = 400;
 
-/** Side panel mock: Python Environments — width 692px (43.25rem @ 16px root), height 1122px (70.125rem). */
-export function ExtensionDetailPanel() {
+/** Side panel mock — width 692px (43.25rem @ 16px root), height 1122px (70.125rem). */
+export function ExtensionDetailPanel({
+  extensionId,
+}: {
+  extensionId: InstalledExtensionId;
+}) {
+  const meta = getInstalledExtension(extensionId);
+  const copy = extensionDetailCopy[extensionId];
   const router = useRouter();
   const [downloadPct, setDownloadPct] = useState(0);
   const [downloadActive, setDownloadActive] = useState(false);
@@ -85,6 +93,13 @@ export function ExtensionDetailPanel() {
   }, []);
 
   useEffect(() => () => clearTimers(), [clearTimers]);
+
+  useEffect(() => {
+    clearTimers();
+    setDownloadPct(0);
+    setDownloadActive(false);
+    setRestartModalOpen(false);
+  }, [extensionId, clearTimers]);
 
   useEffect(() => {
     if (!downloadActive) return;
@@ -157,7 +172,7 @@ export function ExtensionDetailPanel() {
         <div className="extp-hero-row">
           <div className="extp-hero-icon-box">
             <Image
-              src={PYTHON_ICON}
+              src={meta.iconSrc}
               alt=""
               width={48}
               height={48}
@@ -170,7 +185,8 @@ export function ExtensionDetailPanel() {
             <div className="extp-hero-top">
               <div className="extp-title-block">
                 <h2>
-                  Python Environments<span className="extp-title-publisher">pythonCo.</span>
+                  {meta.title}
+                  <span className="extp-title-publisher">{copy.publisher}</span>
                 </h2>
                 <div className="extp-meta-row">
                   <StarRow />
@@ -185,13 +201,10 @@ export function ExtensionDetailPanel() {
                       unoptimized
                       aria-hidden
                     />
-                    12,000,367
+                    {copy.downloads}
                   </span>
                 </div>
-                <p className="extp-lead">
-                  A performant, feature-rich language server for Python in Pharecia
-                  Code.
-                </p>
+                <p className="extp-lead">{copy.lead}</p>
               </div>
               <div className="extp-icon-actions">
                 <IconBtn label="Settings" src={GEAR_ICON} />
@@ -320,11 +333,8 @@ export function ExtensionDetailPanel() {
                   unoptimized
                   aria-hidden
                 />
-                <p className="extp-details-h">Update V1.202</p>
-                <p className="extp-details-p">
-                  This is a rollback to 2025.9.1. Changes from 2025.9.100 to
-                  2025.10.1 have been reverted.
-                </p>
+                <p className="extp-details-h">{copy.updateTitle}</p>
+                <p className="extp-details-p">{copy.updateSummary}</p>
               </div>
             </summary>
             <div className="extp-details-body">
@@ -332,25 +342,12 @@ export function ExtensionDetailPanel() {
               <div className="extp-details-copy">
                 <p className="extp-details-h">Notable changes:</p>
                 <ul className="extp-details-ul">
-                  <li>
-                    <span className="extp-details-strong">Bug fix: </span>
-                    Pylance 2025.10.1 no longer detects workspace or PEP 420 namespace
-                    packages after update pylance-release#7737
-                  </li>
-                  <li>
-                    <span className="extp-details-strong">Bug fix: </span>
-                    Crash when importing inherited TypedDict pylance-release#7736
-                  </li>
-                  <li>
-                    <span className="extp-details-strong">Bug fix: </span>
-                    [pharecia-extension] 2025.10.1 failed upon starting
-                    pylance-release#7735
-                  </li>
-                  <li>
-                    <span className="extp-details-strong">Bug fix: </span>
-                    Error: command &apos;pylance.registerNotebookStartupCommands&apos; already exists
-                    pylance-release#7734
-                  </li>
+                  {copy.updateBullets.map((b, i) => (
+                    <li key={i}>
+                      <span className="extp-details-strong">{b.strong}</span>
+                      {b.text}
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -358,28 +355,23 @@ export function ExtensionDetailPanel() {
 
           <div className="extp-prose">
             <div className="extp-prose-stack">
-              <h3>Python extension for Pharecia Code</h3>
-              <p>
-                Pharecia offers comprehensive support for the Python language across
-                all currently maintained versions. It serves as a central hub where
-                various tools integrate smoothly to provide advanced IntelliSense via
-                Pylance and robust debugging through the Python Debugger. Within
-                Pharecia, developers can easily manage code formatting, linting, and
-                complex refactoring, while navigating projects using the built-in
-                variable and test explorers. Additionally, it streamlines workflow
-                through the latest environment management features found in the new
-                Pharecia Environments Extension.
-              </p>
-              <h4>Advanced Environment Management</h4>
-              <p>
-                A Visual Studio Code{" "}
-                <span className="extp-prose-link">extension</span>
-                {" "}
-                with rich support for the Python language (for all actively supported
-                Python versions), providing access points for extensions to seamlessly
-                integrate and offer support for IntelliSense (Pylance), debugging
-                (Python Debugger), formatting, linting, code navigation.
-              </p>
+              <h3>{copy.proseTitle}</h3>
+              {copy.proseBlocks.map((block, i) => (
+                <div key={i}>
+                  {block.heading ? <h4>{block.heading}</h4> : null}
+                  <p>
+                    {block.linkExtensionWord ? (
+                      <>
+                        A Visual Studio Code{" "}
+                        <span className="extp-prose-link">extension</span>{" "}
+                        {block.body}
+                      </>
+                    ) : (
+                      block.body
+                    )}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

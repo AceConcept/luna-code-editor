@@ -863,7 +863,7 @@ export function EditorWorkbench({
                 key={tab.label}
                 className={
                   isActive
-                    ? "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border-0 bg-black transition-colors duration-150 hover:bg-[#141414]"
+                    ? "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border border-transparent bg-black transition-colors duration-150 hover:bg-[#141414]"
                     : "flex min-w-[7rem] shrink-0 cursor-pointer flex-col rounded-t-[0.25rem] border border-transparent border-r-[#4A4A4A] bg-[#252525] transition-colors duration-150 hover:bg-[#343434]"
                 }
               >
@@ -878,8 +878,8 @@ export function EditorWorkbench({
                     onClick={() => setActiveEditorTab(tab.label)}
                     className={
                       isActive
-                        ? `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 ${tab.accentClass}`
-                        : `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 ${tab.mutedClass}`
+                        ? `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0 ${tab.accentClass}`
+                        : `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0 ${tab.mutedClass}`
                     }
                   >
                     <Image
@@ -899,8 +899,8 @@ export function EditorWorkbench({
                     onClick={(event) => event.stopPropagation()}
                     className={
                       isActive
-                        ? "flex h-[2rem] w-[2rem] shrink-0 items-center justify-center rounded-sm text-white/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25"
-                        : "flex h-[2rem] w-[2rem] shrink-0 items-center justify-center rounded-sm text-[#b9c0ca] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+                        ? "flex h-[2rem] w-[2rem] shrink-0 items-center justify-center rounded-sm text-white/90 outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0"
+                        : "flex h-[2rem] w-[2rem] shrink-0 items-center justify-center rounded-sm text-[#b9c0ca] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0"
                     }
                   >
                     <Image
