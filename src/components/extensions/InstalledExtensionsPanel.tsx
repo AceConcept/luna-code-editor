@@ -309,18 +309,18 @@ export function InstalledExtensionsPanel() {
             maxWidth: layoutNarrowed ? "60.5rem" : "103.25rem",
           }}
         >
-          <header className="extl-header">
-            <h2 className="extl-title">Installed Extensions</h2>
-            <button
-              type="button"
-              aria-label="Filter extensions"
-              className="extl-filter-btn"
-            >
-              <FilterFunnelIcon />
-            </button>
-          </header>
-
           <div className="extl-scroll">
+            <header className="extl-header">
+              <h2 className="extl-title">Installed Extensions</h2>
+              <button
+                type="button"
+                aria-label="Filter extensions"
+                className="extl-filter-btn"
+              >
+                <FilterFunnelIcon />
+              </button>
+            </header>
+
             <ul className="extl-ul">
               {installedExtensions.map((ext) => {
                 const isExpandedRow =
