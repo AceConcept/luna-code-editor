@@ -1,0 +1,101 @@
+================================================================================
+SCALED ARTBOARD / VIEWPORT — HOW IT WORKS (Luna / luna-base)
+================================================================================
+This file describes the "fixed design canvas + uniform scale to fit window"
+pattern used on the home page and /extensions. There is no separate "artboard"
+component name; the behavior lives in ScaledViewport + globals.css (.svp-*).
+
+--------------------------------------------------------------------------------
+1. DESIGN SIZE (THE ARTBOARD)
+--------------------------------------------------------------------------------
+- Reference resolution: 2560 × 1440 px (16:9).
+- In code: constants DESIGN_PX_W = 2560, DESIGN_PX_H = 1440
+  (src/components/ScaledViewport.tsx).
+
+- The inner stage is sized in rem so it equals those pixels when the root
+  font size is 16px:
+    html { font-size: 16px; }   (src/app/globals.css)
+    stage width:  160rem  →  160 × 16 = 2560px
+    stage height:  90rem  →   90 × 16 = 1440px
+
+Rule for another project: pick your design width/height in px. If you use rem
+for the stage, set html font-size explicitly and compute:
+    remWidth  = designWidthPx  / htmlFontSizePx
+    remHeight = designHeightPx / htmlFontSizePx
+Or set stage width/height in px directly; they must match DESIGN_PX_W/H.
+
+--------------------------------------------------------------------------------
+2. SCALE FACTOR (WHY IT STAYS PROPORTIONAL)
+--------------------------------------------------------------------------------
+On every resize (and once on mount), compute:
+
+    scale = min( window.innerWidth / DESIGN_PX_W,
+                 window.innerHeight / DESIGN_PX_H )
+
+- Using the minimum of the two ratios fits the entire artboard inside the
+  window without cropping (letterboxing: empty space on left/right or top/bottom).
+- Using the same scale for X and Y avoids stretching; aspect ratio is preserved.
+
+If you used max() instead, the artboard would fill the window but parts would be
+clipped. This project chooses "show everything, scale down if needed."
+
+--------------------------------------------------------------------------------
+3. DOM LAYOUT (TWO WRAPPERS)
+--------------------------------------------------------------------------------
+OUTER — .svp-root (globals.css)
+- position: fixed; inset: 0;           → full viewport
+- display: flex; align-items: center; justify-content: center;
+- overflow: hidden;                     → no scrollbars from the scaled stage
+
+INNER — .svp-stage (ScaledViewport inline style + globals.css)
+- width / height: design size (160rem × 90rem here)
+- transform: scale(scale);
+- transform-origin: center center;     → shrink/grow from the middle
+
+Children (your UI mock) live inside .svp-stage. They are laid out at design
+resolution; the browser then draws that whole subtree scaled.
+
+--------------------------------------------------------------------------------
+4. WHERE IT IS WIRED
+--------------------------------------------------------------------------------
+- Component: src/components/ScaledViewport.tsx
+- Styles:    src/app/globals.css  (search for ".svp-root" and ".svp-stage")
+- Usage:     src/app/page.tsx and src/app/extensions/page.tsx wrap the page
+             content in <ScaledViewport>...</ScaledViewport>
+
+--------------------------------------------------------------------------------
+5. CHECKLIST FOR ANOTHER PROJECT
+--------------------------------------------------------------------------------
+[ ] Pick design width W and height H (px). Keep aspect ratio consistent with
+    your Figma / mock if applicable.
+
+[ ] Set DESIGN_PX_W and DESIGN_PX_H to W and H.
+
+[ ] Size the inner stage to exactly W×H (px or rem + matching html font-size).
+
+[ ] scale = min(innerWidth/W, innerHeight/H); apply transform: scale(scale).
+
+[ ] transform-origin: center center.
+
+[ ] Outer wrapper: fullscreen + flex center + overflow hidden (same idea as
+    .svp-root).
+
+[ ] Subscribe to window "resize" (and run once on mount). useLayoutEffect avoids
+    a visible one-frame flash at scale 1 before the first measurement (client
+    component required for window).
+
+[ ] Build all internal UI in "design pixels" (rem at 16px root, or px); do not
+    try to rescale individual pieces—only the stage transform scales everything
+    together.
+
+--------------------------------------------------------------------------------
+6. OPTIONAL TWEAKS (NOT IN THIS REPO)
+--------------------------------------------------------------------------------
+- max scale cap (e.g. never scale above 1) if you do not want upscaling on huge
+  monitors.
+- min scale floor for readability.
+- background color on .svp-root for letterbox gutters instead of default.
+
+================================================================================
+END
+================================================================================

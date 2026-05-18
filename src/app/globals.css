@@ -1496,8 +1496,6 @@ code {
   flex-direction: column;
   overflow: hidden;
   border-radius: 0.375rem;
-  border: 1px solid #3c3c3c;
-  background-color: #2d2d2d;
   font-weight: 300;
   color: #ccc;
   box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.35);
@@ -1505,13 +1503,12 @@ code {
 
 .extp-chrome {
   box-sizing: border-box;
-  margin-bottom: 6px;
+  margin-bottom: 0.5rem; /* 8px */
   display: flex;
   height: 2.25rem; /* 36px */
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #454545;
   background-color: #c9cace;
   padding: 0 0.75rem;
   font-size: 0.75rem;
@@ -2148,7 +2145,9 @@ code {
 }
 
 .extp-details[open] {
-  min-height: 600px;
+  min-height: auto;
+  height: fit-content;
+  padding-bottom: 2.25rem; /* 20px */
 }
 
 .extp-details summary {
