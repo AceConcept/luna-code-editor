@@ -1,8 +1,10 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { EditorAsideNav } from "@/components/EditorAsideNav";
+import { LunaAgentChat } from "@/components/code-editor/LunaAgentChat";
 
 /** VSCode-like tokens for the route.ts mock */
 const hl = {
@@ -44,6 +46,8 @@ const editorTabs = [
     accentClass: "text-[#C586C0]",
   },
 ] as const;
+
+const LUNA_AGENT_TAB_ICON = "/code-editor/aside-menu/CirclesThree.svg";
 
 const layoutBarIconsMain = [
   { src: "/code-editor/layout-bar/Browser.svg", label: "Editor area layout" },
@@ -716,6 +720,7 @@ export function EditorWorkbench({
 }) {
   const p = benchClassPrefix;
   const [activeEditorTab, setActiveEditorTab] = useState<(typeof editorTabs)[number]["label"]>("route.ts");
+  const [lunaAgentOpen, setLunaAgentOpen] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
   const hasCodeWrapperHeader = Boolean(codeWrapperHeader);
   const splitPad =
@@ -849,13 +854,21 @@ export function EditorWorkbench({
             aria-label={mainPanel ? "Installed extensions" : "coding"}
             className={wb(p, "coding")}
             {...codingMode}
+            data-luna-agent-open={lunaAgentOpen ? "" : undefined}
           >
           {mainPanel ?? (
-          <>
           <div
-            className="flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-x-auto bg-[#171818] px-0 [&_*]:cursor-pointer"
-            role="tablist"
+            className={
+              lunaAgentOpen
+                ? "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-visible"
+                : "relative flex min-h-0 min-w-0 flex-1 flex-col"
+            }
           >
+          <div className="flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer">
+            <div
+              className="flex min-h-0 min-w-0 flex-1 items-stretch overflow-x-auto [&_*]:cursor-pointer"
+              role="tablist"
+            >
             {editorTabs.map((tab) => {
               const isActive = activeEditorTab === tab.label;
               return (
@@ -921,6 +934,45 @@ export function EditorWorkbench({
               </div>
               );
             })}
+            </div>
+            <div
+              className={
+                lunaAgentOpen
+                  ? "relative z-50 ml-auto flex min-w-[10.5rem] shrink-0 flex-col rounded-t-[0.25rem] border border-transparent border-l-[#4A4A4A] bg-black transition-colors duration-150"
+                  : "relative z-50 ml-auto flex min-w-[10.5rem] shrink-0 flex-col rounded-t-[0.25rem] border border-transparent border-l-[#4A4A4A] bg-[#252525] transition-colors duration-150 hover:bg-[#343434]"
+              }
+            >
+              <button
+                type="button"
+                aria-label="Luna Agent"
+                aria-pressed={lunaAgentOpen}
+                onClick={() => setLunaAgentOpen((open) => !open)}
+                className={
+                  lunaAgentOpen
+                    ? "flex h-[3.625rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] overflow-hidden rounded-sm px-[1rem] text-left text-[1.25rem] font-[300] text-white outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0"
+                    : "flex h-[3.625rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] overflow-hidden rounded-sm px-[1rem] text-left text-[1.25rem] font-[300] text-[#b3b3b3] outline-none ring-0 ring-offset-0 transition-none hover:text-[#cccccc] focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0"
+                }
+              >
+                <Image
+                  src={LUNA_AGENT_TAB_ICON}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="h-[1.75rem] w-[1.75rem] shrink-0 cursor-pointer object-contain"
+                  draggable={false}
+                  unoptimized
+                />
+                <span className="min-w-0 cursor-pointer select-none truncate">Luna Agent</span>
+              </button>
+              <AnimatePresence>
+                {lunaAgentOpen ? (
+                  <LunaAgentChat
+                    key="luna-agent-chat"
+                    onClose={() => setLunaAgentOpen(false)}
+                  />
+                ) : null}
+              </AnimatePresence>
+            </div>
           </div>
 
           <div className="box-border flex h-[3rem] min-h-[3rem] shrink-0 flex-nowrap items-center gap-x-[0.5rem] gap-y-1 overflow-hidden border-b border-[#2b2b2b]/70 bg-[#0E0E0E] pl-[2.5rem] pr-[1rem] text-[1.25rem] leading-none text-[#818181]">
@@ -948,17 +1000,17 @@ export function EditorWorkbench({
             <div
               className="flex w-full min-w-0 flex-col gap-y-[0.5rem] font-sans"
               style={{
-                fontSize: "1.25rem",
-                lineHeight: "1.25rem",
+                fontSize: "1.125rem",
+                lineHeight: "1.125rem",
                 fontWeight: 300,
               }}
             >
               {editorLines.map((line, i) => (
                 <div key={`line-row-${activeEditorTab}-${i}`} className="m-0 p-0 flex min-w-0 items-center">
-                  <span className="flex h-[1.25rem] w-[3rem] shrink-0 cursor-pointer select-none items-center justify-end border-r border-[#3e3d32] pr-[0.75rem] text-right text-[1.125rem] tabular-nums text-[#9a9da1]">
+                  <span className="flex h-[1.125rem] w-[3rem] shrink-0 cursor-pointer select-none items-center justify-end border-r border-[#3e3d32] pr-[0.75rem] text-right text-[1.125rem] tabular-nums text-[#9a9da1]">
                     {i + 1}
                   </span>
-                  <div className="m-0 p-0 flex h-[1.25rem] min-w-0 flex-1 items-center whitespace-pre pl-[1rem] text-[#f8f8f2]">
+                  <div className="m-0 p-0 flex h-[1.125rem] min-w-0 flex-1 items-center whitespace-pre pl-[1rem] text-[#f8f8f2]">
                     {line}
                   </div>
                 </div>
@@ -1096,7 +1148,7 @@ export function EditorWorkbench({
               </aside>
             </div>
           </div>
-          </>
+          </div>
           )}
           </div>
           </div>
