@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
 import { Fragment, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { EditorAsideNav } from "@/components/EditorAsideNav";
@@ -964,14 +963,12 @@ export function EditorWorkbench({
                 />
                 <span className="min-w-0 cursor-pointer select-none truncate">Luna Agent</span>
               </button>
-              <AnimatePresence>
-                {lunaAgentOpen ? (
-                  <LunaAgentChat
-                    key="luna-agent-chat"
-                    onClose={() => setLunaAgentOpen(false)}
-                  />
-                ) : null}
-              </AnimatePresence>
+              {lunaAgentOpen ? (
+                <LunaAgentChat
+                  key="luna-agent-chat"
+                  onClose={() => setLunaAgentOpen(false)}
+                />
+              ) : null}
             </div>
           </div>
 

@@ -32,10 +32,9 @@ const PANEL_HEIGHT_EXPANDED = "calc(2.75rem + 69.5rem)";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-const panelMotion = {
-  initial: { opacity: 0, y: -10, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -8, scale: 0.98, transition: { duration: 0.2 } },
+const chatBodyMotion = {
+  initial: { opacity: 0, y: -16 },
+  animate: { opacity: 1, y: 0 },
   transition: { duration: 0.32, ease: EASE_OUT },
 };
 
@@ -226,16 +225,11 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       role="dialog"
       aria-label="Luna Agent"
       aria-modal="true"
-      initial={panelMotion.initial}
+      initial={false}
       animate={{
-        ...panelMotion.animate,
         height: expanded ? PANEL_HEIGHT_EXPANDED : PANEL_HEIGHT_COLLAPSED,
       }}
-      exit={panelMotion.exit}
       transition={{
-        opacity: { duration: 0.32, ease: EASE_OUT },
-        y: { duration: 0.32, ease: EASE_OUT },
-        scale: { duration: 0.32, ease: EASE_OUT },
         height: { duration: 0.85, ease: EASE_OUT },
       }}
     >
@@ -292,8 +286,13 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       <motion.div
         className="luna-chat-adjust"
         title="luna-chat-adjust"
+        initial={chatBodyMotion.initial}
+        animate={chatBodyMotion.animate}
+        transition={{
+          ...chatBodyMotion.transition,
+          layout: { duration: 0.85, ease: EASE_OUT },
+        }}
         layout
-        transition={{ layout: { duration: 0.85, ease: EASE_OUT } }}
       >
         <div className="luna-agent-messages">
           <AnimatePresence mode="popLayout">
