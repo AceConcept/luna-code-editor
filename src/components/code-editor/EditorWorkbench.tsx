@@ -756,7 +756,6 @@ export function EditorWorkbench({
         <nav className={wb(p, "layout-controls")} aria-label="Layout controls">
           <div
             id="layout"
-            title="layout"
             role="group"
             aria-label="layout"
             className={wb(p, "icon-group")}
@@ -784,7 +783,6 @@ export function EditorWorkbench({
           </div>
           <div
             id="close-expand"
-            title="close-expand"
             role="group"
             aria-label="close-expand"
             className={wb(p, "icon-group", "icon-group--stretch")}
@@ -827,7 +825,6 @@ export function EditorWorkbench({
       >
         <aside
           id="aside-menu"
-          title="aside-menu"
           aria-label="aside-menu"
           className={wb(p, "activity-aside")}
         >
@@ -837,7 +834,6 @@ export function EditorWorkbench({
         <div className={wb(p, "main-column")}>
         <div
           id="code-wrapper"
-          title="code-wrapper"
           role="group"
           aria-label="code-wrapper"
           className={wb(p, "code-wrapper")}
@@ -848,7 +844,6 @@ export function EditorWorkbench({
 
           <div
             id="coding"
-            title={mainPanel ? "installed-extensions" : "coding"}
             role="group"
             aria-label={mainPanel ? "Installed extensions" : "coding"}
             className={wb(p, "coding")}
@@ -863,7 +858,13 @@ export function EditorWorkbench({
                 : "relative flex min-h-0 min-w-0 flex-1 flex-col"
             }
           >
-          <div className="flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer">
+          <div
+            className={
+              lunaAgentOpen
+                ? "relative z-[200] flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer [&_.luna-agent-input]:cursor-text"
+                : "flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer [&_.luna-agent-input]:cursor-text"
+            }
+          >
             <div
               className="flex min-h-0 min-w-0 flex-1 items-stretch overflow-x-auto [&_*]:cursor-pointer"
               role="tablist"
@@ -1018,7 +1019,6 @@ export function EditorWorkbench({
           <div className="flex h-[19rem] min-h-[19rem] shrink-0 flex-col border-t border-[#2b2b2b]/70 bg-[#050505]">
             <div
               id="terminal"
-              title="Terminal"
               role="group"
               aria-label="Terminal"
               className="flex min-h-0 min-w-0 flex-1 flex-row bg-transparent"

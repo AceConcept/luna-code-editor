@@ -12,8 +12,18 @@ import {
   type KeyboardEvent,
 } from "react";
 
-const DUMMY_ASSISTANT_REPLY =
-  "Works, but it's often heavier than H.264/WebM video for full-screen motion: the browser decodes many frames on the main thread, which can affect scroll performance. For static UIs, images or CSS are usually lighter.";
+const JISHO_API_REPLIES = [
+  "For luminos-next, proxy Jisho through a Next.js route handler so the browser never hits jisho.org directly. That sidesteps CORS, keeps your API key and rate-limit logic on the server, and gives you one place to add caching, logging, and request shaping before responses ever reach the client. Treat the proxy as the only public entry point for dictionary lookups.",
+  "Add `app/api/jisho/route.ts` with a GET handler that reads `q` from the query string, validates it, and forwards to `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(q)}`. Use `fetch` with an `AbortSignal` timeout, forward only the status and JSON body you need, and return consistent error shapes for 400, 502, and 504 so the UI can branch without parsing raw upstream payloads.",
+  "Define types in `src/types/jisho.ts` for the API payload—`JishoSearchResult`, `JishoWord`, and nested `senses` / `japanese` entries—so the UI stays typed end-to-end. Mirror the upstream schema loosely at first, then narrow to the fields you render. Export response helpers and keep route handlers and React components importing from the same module to avoid drift.",
+  "Validate input in the route before calling Jisho: trim whitespace, reject empty strings with 400, cap length (e.g. 64 characters), and normalize full-width digits or stray punctuation if your study flow needs it. Log rejected queries at debug level so you can tune rules without spamming production logs.",
+  "Return a slimmed response from the API route—map `data` to `{ slug, word, reading, meanings, isCommon }` so the client does not depend on Jisho's full schema. Drop rare fields you do not render, coerce nulls to safe defaults, and version the shape if you add fields later so older clients do not break silently.",
+  "On the client, add a `searchJisho(query: string)` helper in `src/lib/jisho.ts` that calls `/api/jisho?q=`, checks `response.ok`, and throws a typed error with a stable `code` field when the proxy fails. Centralize URL building, encode the query once, and surface `AbortError` separately so the UI can distinguish user cancel from network failure.",
+  "Wire the lookup UI with `useTransition` or a small hook: set loading while fetching, debounce rapid input if search is live, show the first sense's English glosses, and surface a clear empty state when `data` is empty. Keep the last successful result on screen during background refresh so the panel does not flicker on slow networks.",
+  "Cache recent lookups in memory (or sessionStorage) keyed by a normalized query—lowercase, trimmed—so repeat searches in a study session feel instant. Cap the cache at 50–100 entries with LRU eviction, and invalidate when the user switches decks or lessons if context changes the sense they expect.",
+  "Handle failures gracefully: 429 from your proxy should show \"try again shortly\" with backoff; network errors should keep the last good result visible and offer a retry affordance. Avoid clearing the textarea on failure, and log upstream status codes server-side so you can tell rate limits from Jisho outages.",
+  "Add env-driven config in `.env.local`—`JISHO_PROXY_TIMEOUT_MS`, optional Redis or KV for a shared cache later, and keep the public surface limited to your `/api/jisho` route. Document each variable in README, default timeouts conservatively (8–12s), and never expose upstream URLs or tokens to the browser bundle.",
+] as const;
 
 const PHASE_TIMING_MS = {
   thinking: 700,
@@ -21,34 +31,37 @@ const PHASE_TIMING_MS = {
   preparing: 900,
 } as const;
 
-const TYPEWRITER_MS_PER_CHAR = 18;
+const TYPEWRITER_MS_PER_CHAR = 24;
 
 const CHAT_PLUS_ICON = "/chat/plus.svg";
 const CHAT_MIC_ICON = "/chat/microphone-02.svg";
 const CHAT_ENTER_ICON = "/chat/enter.svg";
 
-const PANEL_HEIGHT_COLLAPSED = "36rem";
-const PANEL_HEIGHT_EXPANDED = "calc(2.75rem + 69.5rem)";
+/** 800px at 16px root */
+const MESSAGES_VIEWPORT_HEIGHT = "50rem";
+const PANEL_FOOTER_REM = "14.5rem";
+const PANEL_HEADER_REM = "2.75rem";
+const PANEL_HEIGHT = `calc(${PANEL_HEADER_REM} + ${MESSAGES_VIEWPORT_HEIGHT} + ${PANEL_FOOTER_REM})`;
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 const chatBodyMotion = {
-  initial: { opacity: 0, y: -16 },
-  animate: { opacity: 1, y: 0 },
+  initial: { y: -16 },
+  animate: { y: 0 },
   transition: { duration: 0.32, ease: EASE_OUT },
 };
 
-const bubbleMotion = {
-  initial: { opacity: 0, y: 10, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -6, scale: 0.98 },
-  transition: { duration: 0.28, ease: EASE_OUT },
+const bubbleEnterMotion = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.2, ease: EASE_OUT },
 };
 
 const statusMotion = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -4 },
+  initial: { y: 6 },
+  animate: { y: 0 },
+  exit: { y: -4 },
   transition: { duration: 0.22, ease: EASE_OUT },
 };
 
@@ -56,11 +69,25 @@ type AgentPhase = "idle" | "thinking" | "processing" | "preparing" | "typing";
 
 type StatusKey = "thinking" | "processing" | "preparing";
 
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+};
+
 const STATUS_LABELS: Record<StatusKey, string> = {
   thinking: "Thinking",
   processing: "Processing request",
   preparing: "Preparing appropriate response",
 };
+
+function pickStockReply(userMessageIndex: number): string {
+  if (userMessageIndex < JISHO_API_REPLIES.length) {
+    return JISHO_API_REPLIES[userMessageIndex];
+  }
+  const idx = Math.floor(Math.random() * JISHO_API_REPLIES.length);
+  return JISHO_API_REPLIES[idx];
+}
 
 function ThinkingDots() {
   return (
@@ -91,7 +118,7 @@ function ThinkingFooterStatus({ phase }: { phase: AgentPhase }) {
       {show ? (
         <motion.p
           key="thinking-footer"
-          className="luna-agent-status"
+          className="luna-agent-status luna-agent-status--footer-thinking"
           role="status"
           aria-live="polite"
           {...statusMotion}
@@ -135,11 +162,14 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
   const phaseTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const [draft, setDraft] = useState("");
-  const [userMessage, setUserMessage] = useState<string | null>(null);
-  const [assistantText, setAssistantText] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [typingText, setTypingText] = useState("");
+  const [streamFullText, setStreamFullText] = useState<string | null>(null);
   const [phase, setPhase] = useState<AgentPhase>("idle");
-  const [busy, setBusy] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const isComposerLocked =
+    phase === "thinking" || phase === "processing" || phase === "preparing";
 
   const clearTimers = useCallback(() => {
     phaseTimersRef.current.forEach(clearTimeout);
@@ -152,55 +182,117 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
-  const startTypewriter = useCallback(() => {
-    setPhase("typing");
-    setAssistantText("");
-    let i = 0;
-    typewriterRef.current = setInterval(() => {
-      i += 1;
-      setAssistantText(DUMMY_ASSISTANT_REPLY.slice(0, i));
-      if (i >= DUMMY_ASSISTANT_REPLY.length) {
-        if (typewriterRef.current) clearInterval(typewriterRef.current);
-        typewriterRef.current = null;
-        setPhase("idle");
-        setBusy(false);
-      }
-    }, TYPEWRITER_MS_PER_CHAR);
+  const scrollMessagesToEnd = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ block: "end", behavior: "auto" });
   }, []);
 
-  const runResponsePipeline = useCallback(() => {
-    clearTimers();
-    setBusy(true);
-    setAssistantText("");
-    setPhase("thinking");
+  useEffect(() => {
+    if (phase === "typing" || typingText.length > 0) {
+      scrollMessagesToEnd();
+    }
+  }, [phase, typingText, scrollMessagesToEnd]);
 
-    phaseTimersRef.current.push(
-      setTimeout(() => setPhase("processing"), PHASE_TIMING_MS.thinking),
-    );
-    phaseTimersRef.current.push(
-      setTimeout(
-        () => setPhase("preparing"),
-        PHASE_TIMING_MS.thinking + PHASE_TIMING_MS.processing,
-      ),
-    );
-    phaseTimersRef.current.push(
-      setTimeout(
-        () => startTypewriter(),
-        PHASE_TIMING_MS.thinking +
-          PHASE_TIMING_MS.processing +
-          PHASE_TIMING_MS.preparing,
-      ),
-    );
-  }, [clearTimers, startTypewriter]);
+  const startTypewriter = useCallback(
+    (fullReply: string) => {
+      setPhase("typing");
+      setStreamFullText(fullReply);
+      setTypingText("");
+      let i = 0;
+      typewriterRef.current = setInterval(() => {
+        i += 1;
+        setTypingText(fullReply.slice(0, i));
+        if (i >= fullReply.length) {
+          if (typewriterRef.current) clearInterval(typewriterRef.current);
+          typewriterRef.current = null;
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `assistant-${Date.now()}`,
+              role: "assistant",
+              text: fullReply,
+            },
+          ]);
+          setTypingText("");
+          setStreamFullText(null);
+          setPhase("idle");
+        }
+      }, TYPEWRITER_MS_PER_CHAR);
+    },
+    [],
+  );
+
+  const runResponsePipeline = useCallback(
+    (fullReply: string) => {
+      clearTimers();
+      setTypingText("");
+      setStreamFullText(null);
+      setPhase("thinking");
+
+      phaseTimersRef.current.push(
+        setTimeout(() => setPhase("processing"), PHASE_TIMING_MS.thinking),
+      );
+      phaseTimersRef.current.push(
+        setTimeout(
+          () => setPhase("preparing"),
+          PHASE_TIMING_MS.thinking + PHASE_TIMING_MS.processing,
+        ),
+      );
+      phaseTimersRef.current.push(
+        setTimeout(
+          () => startTypewriter(fullReply),
+          PHASE_TIMING_MS.thinking +
+            PHASE_TIMING_MS.processing +
+            PHASE_TIMING_MS.preparing,
+        ),
+      );
+    },
+    [clearTimers, startTypewriter],
+  );
 
   const submitMessage = useCallback(() => {
     const text = draft.trim();
-    if (!text || busy) return;
-    setUserMessage(text);
+    if (!text || isComposerLocked) return;
+
+    const userMessageIndex = messages.filter((m) => m.role === "user").length;
+    const replyText = pickStockReply(userMessageIndex);
+
+    if (phase === "typing" || typingText.length > 0) {
+      clearTimers();
+      setMessages((prev) => {
+        const next = [...prev];
+        if (typingText.length > 0) {
+          next.push({
+            id: `assistant-${Date.now()}`,
+            role: "assistant",
+            text: typingText,
+          });
+        }
+        next.push({ id: `user-${Date.now()}`, role: "user", text });
+        return next;
+      });
+      setTypingText("");
+      setStreamFullText(null);
+      setPhase("idle");
+      setDraft("");
+      runResponsePipeline(replyText);
+      return;
+    }
+
+    setMessages((prev) => [
+      ...prev,
+      { id: `user-${Date.now()}`, role: "user", text },
+    ]);
     setDraft("");
-    setExpanded(true);
-    runResponsePipeline();
-  }, [busy, draft, runResponsePipeline]);
+    runResponsePipeline(replyText);
+  }, [
+    clearTimers,
+    draft,
+    isComposerLocked,
+    messages,
+    phase,
+    runResponsePipeline,
+    typingText,
+  ]);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -214,10 +306,10 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
     }
   };
 
-  const showAssistant =
-    phase === "typing" || (phase === "idle" && assistantText.length > 0);
+  const showTypingBubble =
+    streamFullText !== null && (phase === "typing" || typingText.length > 0);
 
-  const canSend = !busy && draft.trim().length > 0;
+  const canSend = !isComposerLocked && draft.trim().length > 0;
 
   return (
     <motion.div
@@ -226,15 +318,13 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       aria-label="Luna Agent"
       aria-modal="true"
       initial={false}
-      animate={{
-        height: expanded ? PANEL_HEIGHT_EXPANDED : PANEL_HEIGHT_COLLAPSED,
-      }}
-      transition={{
-        height: { duration: 0.85, ease: EASE_OUT },
-      }}
+      style={{ height: PANEL_HEIGHT }}
     >
       <header className="luna-agent-header">
         <nav className="luna-agent-header-menus" aria-label="Chat menus">
+          <span className="luna-agent-header-dot-wrap" aria-hidden>
+            <span className="luna-agent-header-dot" />
+          </span>
           {(["File", "Edit", "Selection"] as const).map((item) => (
             <button key={item} type="button" className="luna-agent-header-menu-btn">
               {item}
@@ -267,7 +357,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             aria-label="Close Luna Agent"
-            className="luna-agent-win-btn"
+            className="luna-agent-win-btn luna-agent-win-btn--close"
             onClick={onClose}
           >
             <Image
@@ -285,64 +375,58 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
 
       <motion.div
         className="luna-chat-adjust"
-        title="luna-chat-adjust"
-        initial={chatBodyMotion.initial}
+        initial={false}
         animate={chatBodyMotion.animate}
-        transition={{
-          ...chatBodyMotion.transition,
-          layout: { duration: 0.85, ease: EASE_OUT },
-        }}
-        layout
+        transition={chatBodyMotion.transition}
       >
-        <div className="luna-agent-messages">
-          <AnimatePresence mode="popLayout">
-            {userMessage ? (
+        <div
+          className="luna-agent-messages"
+          style={{
+            height: MESSAGES_VIEWPORT_HEIGHT,
+            minHeight: MESSAGES_VIEWPORT_HEIGHT,
+            maxHeight: MESSAGES_VIEWPORT_HEIGHT,
+          }}
+        >
+          <AnimatePresence initial={false}>
+            {messages.map((message) => (
               <motion.div
-                key={`user-${userMessage}`}
-                className="luna-agent-bubble luna-agent-bubble--user"
-                {...bubbleMotion}
-                layout
+                key={message.id}
+                className={
+                  message.role === "user"
+                    ? "luna-agent-bubble luna-agent-bubble--user"
+                    : "luna-agent-bubble luna-agent-bubble--assistant"
+                }
+                {...bubbleEnterMotion}
               >
-                <p>{userMessage}</p>
+                <p>{message.text}</p>
               </motion.div>
-            ) : null}
+            ))}
           </AnimatePresence>
 
           <MessagePipelineStatus phase={phase} />
 
-          <AnimatePresence mode="wait">
-            {showAssistant ? (
-              <motion.div
-                key="assistant-reply"
-                className="luna-agent-bubble luna-agent-bubble--assistant"
-                {...bubbleMotion}
-                layout
-              >
-                <p>
-                  {assistantText}
+          {showTypingBubble && streamFullText ? (
+            <div className="luna-agent-bubble luna-agent-bubble--assistant luna-agent-bubble--streaming">
+              <p className="luna-agent-typing-block">
+                <span className="luna-agent-typing-ghost" aria-hidden>
+                  {streamFullText}
+                </span>
+                <span className="luna-agent-typing-visible">
+                  {typingText}
                   {phase === "typing" ? (
-                    <motion.span
-                      className="luna-agent-caret"
-                      aria-hidden
-                      animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    />
+                    <span className="luna-agent-caret" aria-hidden />
                   ) : null}
-                </p>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+                </span>
+              </p>
+            </div>
+          ) : null}
+
+          <div ref={messagesEndRef} className="luna-agent-messages-anchor" aria-hidden />
         </div>
 
         <footer className="luna-agent-footer">
           <ThinkingFooterStatus phase={phase} />
-          <motion.form
-            id={formId}
-            className="luna-agent-composer"
-            onSubmit={onSubmit}
-            layout
-            transition={{ layout: { duration: 0.3, ease: EASE_OUT } }}
-          >
+          <form id={formId} className="luna-agent-composer" onSubmit={onSubmit}>
             <textarea
               className="luna-agent-input"
               placeholder="Ask Anything"
@@ -350,7 +434,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={onKeyDown}
               rows={3}
-              disabled={busy}
+              disabled={isComposerLocked}
               aria-label="Message Luna Agent"
               spellCheck={false}
               autoCorrect="off"
@@ -368,7 +452,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                       type="button"
                       aria-label="Add attachment"
                       className="luna-agent-round-btn"
-                      disabled={busy}
+                      disabled={isComposerLocked}
                     >
                       <Image
                         src={CHAT_PLUS_ICON}
@@ -387,7 +471,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                       type="button"
                       aria-label="Voice input"
                       className="luna-agent-round-btn"
-                      disabled={busy}
+                      disabled={isComposerLocked}
                     >
                       <Image
                         src={CHAT_MIC_ICON}
@@ -403,7 +487,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
                 <div className="luna-agent-composer-right">
-                  <button type="button" className="luna-agent-mode-btn" disabled={busy}>
+                  <button type="button" className="luna-agent-mode-btn" disabled={isComposerLocked}>
                     Auto
                     <Image
                       src="/code-editor/folder-menu/Caret.svg"
@@ -424,7 +508,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                         ? "luna-agent-send-btn"
                         : "luna-agent-send-btn luna-agent-send-btn--inactive"
                     }
-                    disabled={busy}
+                    disabled={isComposerLocked}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -448,7 +532,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             </div>
-          </motion.form>
+          </form>
         </footer>
       </motion.div>
     </motion.div>

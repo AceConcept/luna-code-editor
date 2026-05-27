@@ -88,7 +88,6 @@ export function ExtensionsFileMenu() {
     <div className="xfm-col" aria-label="Extensions">
       <div
         id="file-menu"
-        title="Extensions sidebar"
         role="group"
         aria-label="Extension categories"
         className="xfm-panel"

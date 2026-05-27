@@ -148,7 +148,6 @@ export function ExplorerFileMenu() {
     <div className="hwb-explorer-file-menu" aria-label="Explorer">
       <div
         id="file-menu"
-        title="File menu"
         role="group"
         aria-label="File menu"
         className="hwb-explorer-file-menu-inner"

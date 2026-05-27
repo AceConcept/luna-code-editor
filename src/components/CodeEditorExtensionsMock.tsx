@@ -60,7 +60,6 @@ function CodeWrapperHeader() {
   return (
     <div
       id="code-wrapper-header"
-      title="code-wrapper-header"
       role="region"
       aria-label="Editor panel header"
       className="ecm-code-header"
