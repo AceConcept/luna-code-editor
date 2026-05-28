@@ -161,11 +161,10 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
   const formId = useId();
   const typewriterRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const activeAssistantMessageIdRef = useRef<string | null>(null);
 
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [typingText, setTypingText] = useState("");
-  const [streamFullText, setStreamFullText] = useState<string | null>(null);
   const [phase, setPhase] = useState<AgentPhase>("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -188,33 +187,39 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (phase === "typing" || typingText.length > 0) {
+    if (phase === "typing") {
       scrollMessagesToEnd();
     }
-  }, [phase, typingText, scrollMessagesToEnd]);
+  }, [messages, phase, scrollMessagesToEnd]);
 
   const startTypewriter = useCallback(
     (fullReply: string) => {
+      const assistantMessageId = `assistant-${Date.now()}`;
+      activeAssistantMessageIdRef.current = assistantMessageId;
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          text: "",
+        },
+      ]);
       setPhase("typing");
-      setStreamFullText(fullReply);
-      setTypingText("");
       let i = 0;
       typewriterRef.current = setInterval(() => {
         i += 1;
-        setTypingText(fullReply.slice(0, i));
+        const nextText = fullReply.slice(0, i);
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantMessageId
+              ? { ...message, text: nextText }
+              : message,
+          ),
+        );
         if (i >= fullReply.length) {
           if (typewriterRef.current) clearInterval(typewriterRef.current);
           typewriterRef.current = null;
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `assistant-${Date.now()}`,
-              role: "assistant",
-              text: fullReply,
-            },
-          ]);
-          setTypingText("");
-          setStreamFullText(null);
+          activeAssistantMessageIdRef.current = null;
           setPhase("idle");
         }
       }, TYPEWRITER_MS_PER_CHAR);
@@ -225,8 +230,6 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
   const runResponsePipeline = useCallback(
     (fullReply: string) => {
       clearTimers();
-      setTypingText("");
-      setStreamFullText(null);
       setPhase("thinking");
 
       phaseTimersRef.current.push(
@@ -257,22 +260,10 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
     const userMessageIndex = messages.filter((m) => m.role === "user").length;
     const replyText = pickStockReply(userMessageIndex);
 
-    if (phase === "typing" || typingText.length > 0) {
+    if (phase === "typing") {
       clearTimers();
-      setMessages((prev) => {
-        const next = [...prev];
-        if (typingText.length > 0) {
-          next.push({
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-            text: typingText,
-          });
-        }
-        next.push({ id: `user-${Date.now()}`, role: "user", text });
-        return next;
-      });
-      setTypingText("");
-      setStreamFullText(null);
+      activeAssistantMessageIdRef.current = null;
+      setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: "user", text }]);
       setPhase("idle");
       setDraft("");
       runResponsePipeline(replyText);
@@ -292,7 +283,6 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
     messages,
     phase,
     runResponsePipeline,
-    typingText,
   ]);
 
   const onSubmit = (event: FormEvent) => {
@@ -306,9 +296,6 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       submitMessage();
     }
   };
-
-  const showTypingBubble =
-    streamFullText !== null && (phase === "typing" || typingText.length > 0);
 
   const canSend = !isComposerLocked && draft.trim().length > 0;
 
@@ -400,28 +387,17 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
                   }
                   {...bubbleEnterMotion}
                 >
-                  <p>{message.text}</p>
+                  <p>
+                    {message.text}
+                    {phase === "typing" && message.id === activeAssistantMessageIdRef.current ? (
+                      <span className="luna-agent-caret" aria-hidden />
+                    ) : null}
+                  </p>
                 </motion.div>
               ))}
             </AnimatePresence>
 
             <MessagePipelineStatus phase={phase} />
-
-            {showTypingBubble && streamFullText ? (
-              <div className="luna-agent-bubble luna-agent-bubble--assistant luna-agent-bubble--streaming">
-                <p className="luna-agent-typing-block">
-                  <span className="luna-agent-typing-ghost" aria-hidden>
-                    {streamFullText}
-                  </span>
-                  <span className="luna-agent-typing-visible">
-                    {typingText}
-                    {phase === "typing" ? (
-                      <span className="luna-agent-caret" aria-hidden />
-                    ) : null}
-                  </span>
-                </p>
-              </div>
-            ) : null}
 
             <div ref={messagesEndRef} className="luna-agent-messages-anchor" aria-hidden />
           </div>
