@@ -2310,6 +2310,7 @@ code {
   --luna-agent-messages-height: 50rem; /* 800px */
   --luna-agent-panel-footer-height: 14.5rem;
   --luna-agent-panel-header-height: 2.75rem;
+  --luna-agent-panel-header-body-gap: 1rem;
 }
 
 .luna-agent-panel {
@@ -2320,22 +2321,26 @@ code {
   display: flex;
   width: 32.75rem; /* 524px */
   height: calc(
-    var(--luna-agent-panel-header-height) + var(--luna-agent-messages-height) +
+    var(--luna-agent-panel-header-height) +
+      var(--luna-agent-panel-header-body-gap) + var(--luna-agent-messages-height) +
       var(--luna-agent-panel-footer-height)
   );
   min-height: calc(
-    var(--luna-agent-panel-header-height) + var(--luna-agent-messages-height) +
+    var(--luna-agent-panel-header-height) +
+      var(--luna-agent-panel-header-body-gap) + var(--luna-agent-messages-height) +
       var(--luna-agent-panel-footer-height)
   );
   max-height: min(
     calc(
-      var(--luna-agent-panel-header-height) + var(--luna-agent-messages-height) +
+      var(--luna-agent-panel-header-height) +
+        var(--luna-agent-panel-header-body-gap) + var(--luna-agent-messages-height) +
         var(--luna-agent-panel-footer-height)
     ),
     calc(100vh - 8rem)
   );
   margin-top: 0.125rem;
   flex-direction: column;
+  gap: var(--luna-agent-panel-header-body-gap); /* 16px space between header and body */
   isolation: isolate;
   background-color: transparent;
   box-shadow: 0 0.5rem 2rem rgb(0 0 0 / 0.5);
@@ -2356,8 +2361,7 @@ code {
   box-sizing: border-box;
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-rows: var(--luna-agent-messages-height) auto;
+  display: block;
   min-height: calc(
     var(--luna-agent-messages-height) + var(--luna-agent-panel-footer-height)
   );
@@ -2367,6 +2371,14 @@ code {
   border-radius: 0 0 0.5rem 0.5rem;
   background-color: #101010;
   opacity: 1;
+}
+
+.luna-agent-body {
+  display: grid;
+  grid-template-rows: var(--luna-agent-messages-height) auto;
+  min-height: calc(
+    var(--luna-agent-messages-height) + var(--luna-agent-panel-footer-height)
+  );
 }
 
 .luna-agent-header {
@@ -2416,8 +2428,8 @@ code {
   padding: 0 10px;
   font-size: 1.25rem; /* match .hwb-layout-header menubar */
   line-height: 1.25rem;
-  font-weight: 300;
-  color: #2e2e2e;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 1);
   opacity: 0.8;
   cursor: pointer;
   transition:
@@ -2426,7 +2438,7 @@ code {
 }
 
 .luna-agent-header-menu-btn:hover {
-  color: #2e2e2e;
+  color: #000;
   opacity: 1;
 }
 
@@ -2545,6 +2557,9 @@ code {
 .luna-agent-bubble--assistant p {
   margin: 0;
   font-size: 1rem; /* 16px */
+  line-height: 140%;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .luna-agent-bubble--streaming {

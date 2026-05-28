@@ -41,7 +41,8 @@ const CHAT_ENTER_ICON = "/chat/enter.svg";
 const MESSAGES_VIEWPORT_HEIGHT = "50rem";
 const PANEL_FOOTER_REM = "14.5rem";
 const PANEL_HEADER_REM = "2.75rem";
-const PANEL_HEIGHT = `calc(${PANEL_HEADER_REM} + ${MESSAGES_VIEWPORT_HEIGHT} + ${PANEL_FOOTER_REM})`;
+const PANEL_HEADER_BODY_GAP_REM = "1rem";
+const PANEL_HEIGHT = `calc(${PANEL_HEADER_REM} + ${PANEL_HEADER_BODY_GAP_REM} + ${MESSAGES_VIEWPORT_HEIGHT} + ${PANEL_FOOTER_REM})`;
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -379,161 +380,163 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
         animate={chatBodyMotion.animate}
         transition={chatBodyMotion.transition}
       >
-        <div
-          className="luna-agent-messages"
-          style={{
-            height: MESSAGES_VIEWPORT_HEIGHT,
-            minHeight: MESSAGES_VIEWPORT_HEIGHT,
-            maxHeight: MESSAGES_VIEWPORT_HEIGHT,
-          }}
-        >
-          <AnimatePresence initial={false}>
-            {messages.map((message) => (
-              <motion.div
-                key={message.id}
-                className={
-                  message.role === "user"
-                    ? "luna-agent-bubble luna-agent-bubble--user"
-                    : "luna-agent-bubble luna-agent-bubble--assistant"
-                }
-                {...bubbleEnterMotion}
-              >
-                <p>{message.text}</p>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div className="luna-agent-body">
+          <div
+            className="luna-agent-messages"
+            style={{
+              height: MESSAGES_VIEWPORT_HEIGHT,
+              minHeight: MESSAGES_VIEWPORT_HEIGHT,
+              maxHeight: MESSAGES_VIEWPORT_HEIGHT,
+            }}
+          >
+            <AnimatePresence initial={false}>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  className={
+                    message.role === "user"
+                      ? "luna-agent-bubble luna-agent-bubble--user"
+                      : "luna-agent-bubble luna-agent-bubble--assistant"
+                  }
+                  {...bubbleEnterMotion}
+                >
+                  <p>{message.text}</p>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-          <MessagePipelineStatus phase={phase} />
+            <MessagePipelineStatus phase={phase} />
 
-          {showTypingBubble && streamFullText ? (
-            <div className="luna-agent-bubble luna-agent-bubble--assistant luna-agent-bubble--streaming">
-              <p className="luna-agent-typing-block">
-                <span className="luna-agent-typing-ghost" aria-hidden>
-                  {streamFullText}
-                </span>
-                <span className="luna-agent-typing-visible">
-                  {typingText}
-                  {phase === "typing" ? (
-                    <span className="luna-agent-caret" aria-hidden />
-                  ) : null}
-                </span>
-              </p>
-            </div>
-          ) : null}
+            {showTypingBubble && streamFullText ? (
+              <div className="luna-agent-bubble luna-agent-bubble--assistant luna-agent-bubble--streaming">
+                <p className="luna-agent-typing-block">
+                  <span className="luna-agent-typing-ghost" aria-hidden>
+                    {streamFullText}
+                  </span>
+                  <span className="luna-agent-typing-visible">
+                    {typingText}
+                    {phase === "typing" ? (
+                      <span className="luna-agent-caret" aria-hidden />
+                    ) : null}
+                  </span>
+                </p>
+              </div>
+            ) : null}
 
-          <div ref={messagesEndRef} className="luna-agent-messages-anchor" aria-hidden />
-        </div>
+            <div ref={messagesEndRef} className="luna-agent-messages-anchor" aria-hidden />
+          </div>
 
-        <footer className="luna-agent-footer">
-          <ThinkingFooterStatus phase={phase} />
-          <form id={formId} className="luna-agent-composer" onSubmit={onSubmit}>
-            <textarea
-              className="luna-agent-input"
-              placeholder="Ask Anything"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={onKeyDown}
-              rows={3}
-              disabled={isComposerLocked}
-              aria-label="Message Luna Agent"
-              spellCheck={false}
-              autoCorrect="off"
-              autoComplete="off"
-              autoCapitalize="off"
-              data-gramm="false"
-              data-gramm_editor="false"
-              data-enable-grammarly="false"
-            />
-            <div className="luna-agent-composer-bar-wrap">
-              <div className="luna-agent-composer-bar">
-                <div className="luna-agent-composer-left">
-                  <div className="luna-agent-round-btn-wrap">
-                    <button
-                      type="button"
-                      aria-label="Add attachment"
-                      className="luna-agent-round-btn"
-                      disabled={isComposerLocked}
-                    >
+          <footer className="luna-agent-footer">
+            <ThinkingFooterStatus phase={phase} />
+            <form id={formId} className="luna-agent-composer" onSubmit={onSubmit}>
+              <textarea
+                className="luna-agent-input"
+                placeholder="Ask Anything"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={onKeyDown}
+                rows={3}
+                disabled={isComposerLocked}
+                aria-label="Message Luna Agent"
+                spellCheck={false}
+                autoCorrect="off"
+                autoComplete="off"
+                autoCapitalize="off"
+                data-gramm="false"
+                data-gramm_editor="false"
+                data-enable-grammarly="false"
+              />
+              <div className="luna-agent-composer-bar-wrap">
+                <div className="luna-agent-composer-bar">
+                  <div className="luna-agent-composer-left">
+                    <div className="luna-agent-round-btn-wrap">
+                      <button
+                        type="button"
+                        aria-label="Add attachment"
+                        className="luna-agent-round-btn"
+                        disabled={isComposerLocked}
+                      >
+                        <Image
+                          src={CHAT_PLUS_ICON}
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="luna-agent-round-btn-ico"
+                          draggable={false}
+                          unoptimized
+                          aria-hidden
+                        />
+                      </button>
+                    </div>
+                    <div className="luna-agent-round-btn-wrap">
+                      <button
+                        type="button"
+                        aria-label="Voice input"
+                        className="luna-agent-round-btn"
+                        disabled={isComposerLocked}
+                      >
+                        <Image
+                          src={CHAT_MIC_ICON}
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="luna-agent-round-btn-ico"
+                          draggable={false}
+                          unoptimized
+                          aria-hidden
+                        />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="luna-agent-composer-right">
+                    <button type="button" className="luna-agent-mode-btn" disabled={isComposerLocked}>
+                      Auto
                       <Image
-                        src={CHAT_PLUS_ICON}
+                        src="/code-editor/folder-menu/Caret.svg"
                         alt=""
-                        width={16}
-                        height={16}
-                        className="luna-agent-round-btn-ico"
+                        width={14}
+                        height={14}
+                        className="luna-agent-mode-caret"
                         draggable={false}
                         unoptimized
                         aria-hidden
                       />
                     </button>
-                  </div>
-                  <div className="luna-agent-round-btn-wrap">
-                    <button
+                    <motion.button
                       type="button"
-                      aria-label="Voice input"
-                      className="luna-agent-round-btn"
+                      aria-label="Send message"
+                      className={
+                        canSend
+                          ? "luna-agent-send-btn"
+                          : "luna-agent-send-btn luna-agent-send-btn--inactive"
+                      }
                       disabled={isComposerLocked}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        submitMessage();
+                      }}
+                      whileHover={canSend ? { scale: 1.05 } : undefined}
+                      whileTap={canSend ? { scale: 0.94 } : undefined}
+                      transition={{ type: "spring", stiffness: 520, damping: 28 }}
                     >
                       <Image
-                        src={CHAT_MIC_ICON}
+                        src={CHAT_ENTER_ICON}
                         alt=""
                         width={16}
                         height={16}
-                        className="luna-agent-round-btn-ico"
+                        className="luna-agent-send-ico"
                         draggable={false}
                         unoptimized
                         aria-hidden
                       />
-                    </button>
+                    </motion.button>
                   </div>
-                </div>
-                <div className="luna-agent-composer-right">
-                  <button type="button" className="luna-agent-mode-btn" disabled={isComposerLocked}>
-                    Auto
-                    <Image
-                      src="/code-editor/folder-menu/Caret.svg"
-                      alt=""
-                      width={14}
-                      height={14}
-                      className="luna-agent-mode-caret"
-                      draggable={false}
-                      unoptimized
-                      aria-hidden
-                    />
-                  </button>
-                  <motion.button
-                    type="button"
-                    aria-label="Send message"
-                    className={
-                      canSend
-                        ? "luna-agent-send-btn"
-                        : "luna-agent-send-btn luna-agent-send-btn--inactive"
-                    }
-                    disabled={isComposerLocked}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      submitMessage();
-                    }}
-                    whileHover={canSend ? { scale: 1.05 } : undefined}
-                    whileTap={canSend ? { scale: 0.94 } : undefined}
-                    transition={{ type: "spring", stiffness: 520, damping: 28 }}
-                  >
-                    <Image
-                      src={CHAT_ENTER_ICON}
-                      alt=""
-                      width={16}
-                      height={16}
-                      className="luna-agent-send-ico"
-                      draggable={false}
-                      unoptimized
-                      aria-hidden
-                    />
-                  </motion.button>
                 </div>
               </div>
-            </div>
-          </form>
-        </footer>
+            </form>
+          </footer>
+        </div>
       </motion.div>
     </motion.div>
   );
