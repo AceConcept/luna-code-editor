@@ -2307,13 +2307,21 @@ code {
 
 /* ─── Luna Agent chat panel (pop-in over editor) ─── */
 :root {
-  --luna-agent-messages-height: 50rem; /* 800px */
-  --luna-agent-panel-footer-height: 14.5rem;
+  --luna-agent-messages-base-height: 50rem; /* 800px */
+  --luna-agent-input-min-height: 4.5rem;
   --luna-agent-panel-header-height: 2.75rem;
   --luna-agent-panel-header-body-gap: 1rem;
 }
 
 .luna-agent-panel {
+  --luna-agent-footer-base-height: 0rem;
+  --luna-agent-footer-extra: 0rem;
+  --luna-agent-messages-height: calc(
+    var(--luna-agent-messages-base-height) - var(--luna-agent-footer-extra)
+  );
+  --luna-agent-panel-footer-height: calc(
+    var(--luna-agent-footer-base-height) + var(--luna-agent-footer-extra)
+  );
   position: absolute;
   top: 100%;
   right: 0;
@@ -2361,24 +2369,23 @@ code {
   box-sizing: border-box;
   position: relative;
   z-index: 1;
-  display: block;
-  min-height: calc(
-    var(--luna-agent-messages-height) + var(--luna-agent-panel-footer-height)
-  );
+  display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid #4a4a4a;
   border-radius: 0 0 0.5rem 0.5rem;
   background-color: #101010;
+  color: rgba(74, 74, 74, 1);
   opacity: 1;
 }
 
 .luna-agent-body {
-  display: grid;
-  grid-template-rows: var(--luna-agent-messages-height) auto;
-  min-height: calc(
-    var(--luna-agent-messages-height) + var(--luna-agent-panel-footer-height)
-  );
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .luna-agent-header {
@@ -2551,11 +2558,54 @@ code {
   background-color: transparent;
   color: #e8e8e8;
   padding: 2rem 0;
+}
+
+.luna-agent-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.luna-agent-message-title {
   margin: 0;
   font-size: 1.125rem; /* 18px */
+  font-weight: 600;
   line-height: 150%;
-  white-space: pre-wrap;
-  word-break: break-word;
+  color: #f2f2f2;
+  letter-spacing: -0.01em;
+}
+
+.luna-agent-message-body {
+  margin: 0;
+  font-size: 1.125rem; /* 18px */
+  font-weight: 400;
+  line-height: 150%;
+  color: #e8e8e8;
+}
+
+.luna-agent-message-list {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.luna-agent-message-list-item {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 400;
+  line-height: 150%;
+  color: #d8d8d8;
+}
+
+.luna-agent-message-list-item::marker {
+  color: #9a9a9a;
+}
+
+.luna-agent-message-strong {
+  font-weight: 600;
+  color: #f5f5f5;
 }
 
 .luna-agent-messages-anchor {
@@ -2584,7 +2634,7 @@ code {
 .luna-agent-footer {
   position: relative;
   display: flex;
-  flex-shrink: 0;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.75rem; /* 28px */
@@ -2667,10 +2717,23 @@ code {
   overflow: hidden;
 }
 
-.luna-agent-input {
+.luna-agent-input-wrap {
+  box-sizing: border-box;
   width: 100%;
-  min-height: 4.5rem;
+  flex: 0 0 auto;
+  align-self: stretch;
+  padding-block: 0.5rem; /* 8px */
+}
+
+.luna-agent-input {
+  display: block;
+  width: 100%;
+  min-height: var(--luna-agent-input-min-height);
+  max-height: calc(
+    var(--luna-agent-input-min-height) + var(--luna-agent-footer-base-height)
+  );
   resize: none;
+  overflow-y: auto;
   border: 0;
   background: transparent;
   padding: 1rem 0 0.5rem;

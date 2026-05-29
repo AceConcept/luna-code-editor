@@ -6,23 +6,111 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 
-const JISHO_API_REPLIES = [
-  "For luminos-next, proxy Jisho through a Next.js route handler so the browser never hits jisho.org directly. That sidesteps CORS, keeps your API key and rate-limit logic on the server, and gives you one place to add caching, logging, and request shaping before responses ever reach the client. Treat the proxy as the only public entry point for dictionary lookups.",
-  "Add `app/api/jisho/route.ts` with a GET handler that reads `q` from the query string, validates it, and forwards to `https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(q)}`. Use `fetch` with an `AbortSignal` timeout, forward only the status and JSON body you need, and return consistent error shapes for 400, 502, and 504 so the UI can branch without parsing raw upstream payloads.",
-  "Define types in `src/types/jisho.ts` for the API payload—`JishoSearchResult`, `JishoWord`, and nested `senses` / `japanese` entries—so the UI stays typed end-to-end. Mirror the upstream schema loosely at first, then narrow to the fields you render. Export response helpers and keep route handlers and React components importing from the same module to avoid drift.",
-  "Validate input in the route before calling Jisho: trim whitespace, reject empty strings with 400, cap length (e.g. 64 characters), and normalize full-width digits or stray punctuation if your study flow needs it. Log rejected queries at debug level so you can tune rules without spamming production logs.",
-  "Return a slimmed response from the API route—map `data` to `{ slug, word, reading, meanings, isCommon }` so the client does not depend on Jisho's full schema. Drop rare fields you do not render, coerce nulls to safe defaults, and version the shape if you add fields later so older clients do not break silently.",
-  "On the client, add a `searchJisho(query: string)` helper in `src/lib/jisho.ts` that calls `/api/jisho?q=`, checks `response.ok`, and throws a typed error with a stable `code` field when the proxy fails. Centralize URL building, encode the query once, and surface `AbortError` separately so the UI can distinguish user cancel from network failure.",
-  "Wire the lookup UI with `useTransition` or a small hook: set loading while fetching, debounce rapid input if search is live, show the first sense's English glosses, and surface a clear empty state when `data` is empty. Keep the last successful result on screen during background refresh so the panel does not flicker on slow networks.",
-  "Cache recent lookups in memory (or sessionStorage) keyed by a normalized query—lowercase, trimmed—so repeat searches in a study session feel instant. Cap the cache at 50–100 entries with LRU eviction, and invalidate when the user switches decks or lessons if context changes the sense they expect.",
-  "Handle failures gracefully: 429 from your proxy should show \"try again shortly\" with backoff; network errors should keep the last good result visible and offer a retry affordance. Avoid clearing the textarea on failure, and log upstream status codes server-side so you can tell rate limits from Jisho outages.",
-  "Add env-driven config in `.env.local`—`JISHO_PROXY_TIMEOUT_MS`, optional Redis or KV for a shared cache later, and keep the public surface limited to your `/api/jisho` route. Document each variable in README, default timeouts conservatively (8–12s), and never expose upstream URLs or tokens to the browser bundle.",
+type AssistantReply = {
+  title: string;
+  body: string;
+  bullets?: string[];
+};
+
+const JISHO_API_REPLIES: readonly AssistantReply[] = [
+  {
+    title: "Proxy Jisho through Next.js",
+    body: "For **luminos-next**, route dictionary lookups through a server handler so the browser never calls jisho.org directly.",
+    bullets: [
+      "Avoids **CORS** and keeps API keys off the client",
+      "Central place for **caching**, logging, and rate limits",
+      "Treat the proxy as the only public entry point for lookups",
+    ],
+  },
+  {
+    title: "Add the API route handler",
+    body: "Create **`app/api/jisho/route.ts`** with a GET handler that validates `q` and forwards to Jisho.",
+    bullets: [
+      "Use **`fetch`** with an **`AbortSignal`** timeout",
+      "Return stable error shapes for **400**, **502**, and **504**",
+      "Forward only the status and JSON the UI needs",
+    ],
+  },
+  {
+    title: "Type the Jisho payload",
+    body: "Define shared types in **`src/types/jisho.ts`** so routes and components stay aligned.",
+    bullets: [
+      "Model **`JishoSearchResult`**, **`JishoWord`**, and nested senses",
+      "Mirror upstream loosely, then narrow to rendered fields",
+      "Export helpers from one module to avoid schema drift",
+    ],
+  },
+  {
+    title: "Validate queries early",
+    body: "Reject bad input in the route **before** calling Jisho.",
+    bullets: [
+      "Trim whitespace and return **400** on empty strings",
+      "Cap length (e.g. **64 characters**)",
+      "Log rejected queries at debug level for tuning",
+    ],
+  },
+  {
+    title: "Slim the API response",
+    body: "Map upstream `data` to a small client shape so the UI does not depend on Jisho's full schema.",
+    bullets: [
+      "Return **`slug`**, **`word`**, **`reading`**, **`meanings`**, **`isCommon`**",
+      "Drop fields you do not render and coerce nulls safely",
+      "Version the shape if you add fields later",
+    ],
+  },
+  {
+    title: "Client search helper",
+    body: "Add **`searchJisho(query)`** in **`src/lib/jisho.ts`** that calls your proxy.",
+    bullets: [
+      "Check **`response.ok`** and throw a typed error with a stable **`code`**",
+      "Encode the query once in a single URL builder",
+      "Surface **`AbortError`** separately from network failures",
+    ],
+  },
+  {
+    title: "Wire the lookup UI",
+    body: "Use **`useTransition`** or a small hook so search feels responsive.",
+    bullets: [
+      "Show loading while fetching and debounce live input",
+      "Render the first sense's **English glosses**",
+      "Keep the last good result visible during background refresh",
+    ],
+  },
+  {
+    title: "Cache recent lookups",
+    body: "Key cache entries by a **normalized query** (lowercase, trimmed).",
+    bullets: [
+      "Use in-memory or **sessionStorage** for the study session",
+      "Cap at **50–100** entries with LRU eviction",
+      "Invalidate when deck or lesson context changes",
+    ],
+  },
+  {
+    title: "Handle failures gracefully",
+    body: "Make errors readable without wiping the user's work.",
+    bullets: [
+      "Show **\"try again shortly\"** on **429** with backoff",
+      "Keep the last good result visible on network errors",
+      "Log upstream status codes server-side for diagnosis",
+    ],
+  },
+  {
+    title: "Environment configuration",
+    body: "Keep secrets and timeouts in **`.env.local`** and document each variable.",
+    bullets: [
+      "Set **`JISHO_PROXY_TIMEOUT_MS`** (default **8–12s**)",
+      "Optional **Redis** or **KV** for a shared cache later",
+      "Never expose upstream URLs or tokens in the client bundle",
+    ],
+  },
 ] as const;
 
 const PHASE_TIMING_MS = {
@@ -31,18 +119,11 @@ const PHASE_TIMING_MS = {
   preparing: 900,
 } as const;
 
-const TYPEWRITER_MS_PER_CHAR = 24;
+const TYPEWRITER_MS_PER_CHAR = 12;
 
 const CHAT_PLUS_ICON = "/chat/plus.svg";
 const CHAT_MIC_ICON = "/chat/microphone-02.svg";
 const CHAT_ENTER_ICON = "/chat/enter.svg";
-
-/** 800px at 16px root */
-const MESSAGES_VIEWPORT_HEIGHT = "50rem";
-const PANEL_FOOTER_REM = "14.5rem";
-const PANEL_HEADER_REM = "2.75rem";
-const PANEL_HEADER_BODY_GAP_REM = "1rem";
-const PANEL_HEIGHT = `calc(${PANEL_HEADER_REM} + ${PANEL_HEADER_BODY_GAP_REM} + ${MESSAGES_VIEWPORT_HEIGHT} + ${PANEL_FOOTER_REM})`;
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -70,11 +151,20 @@ type AgentPhase = "idle" | "thinking" | "processing" | "preparing" | "typing";
 
 type StatusKey = "thinking" | "processing" | "preparing";
 
-type ChatMessage = {
+type UserMessage = {
   id: string;
-  role: "user" | "assistant";
+  role: "user";
   text: string;
 };
+
+type AssistantMessage = {
+  id: string;
+  role: "assistant";
+  reply: AssistantReply;
+  visibleChars: number;
+};
+
+type ChatMessage = UserMessage | AssistantMessage;
 
 const STATUS_LABELS: Record<StatusKey, string> = {
   thinking: "Thinking",
@@ -82,12 +172,119 @@ const STATUS_LABELS: Record<StatusKey, string> = {
   preparing: "Preparing appropriate response",
 };
 
-function pickStockReply(userMessageIndex: number): string {
+function pickStockReply(userMessageIndex: number): AssistantReply {
   if (userMessageIndex < JISHO_API_REPLIES.length) {
     return JISHO_API_REPLIES[userMessageIndex];
   }
   const idx = Math.floor(Math.random() * JISHO_API_REPLIES.length);
   return JISHO_API_REPLIES[idx];
+}
+
+function replyPlainTextLength(reply: AssistantReply): number {
+  const bulletBlock =
+    reply.bullets && reply.bullets.length > 0
+      ? `\n\n${reply.bullets.map((b) => `• ${b}`).join("\n")}`
+      : "";
+  return reply.title.length + 2 + reply.body.length + bulletBlock.length;
+}
+
+function sliceAssistantReply(reply: AssistantReply, charCount: number): AssistantReply {
+  let remaining = charCount;
+
+  const title = reply.title.slice(0, Math.min(remaining, reply.title.length));
+  remaining -= title.length;
+  if (remaining === 0) return { title, body: "", bullets: [] };
+
+  const titleGap = Math.min(remaining, 2);
+  remaining -= titleGap;
+  if (titleGap < 2) return { title, body: "", bullets: [] };
+
+  const body = reply.body.slice(0, Math.min(remaining, reply.body.length));
+  remaining -= body.length;
+  if (remaining === 0 || !reply.bullets?.length) {
+    return { title, body, bullets: [] };
+  }
+
+  const bodyGap = Math.min(remaining, 2);
+  remaining -= bodyGap;
+  if (bodyGap < 2) return { title, body, bullets: [] };
+
+  const bullets: string[] = [];
+  for (let i = 0; i < reply.bullets.length; i++) {
+    if (remaining === 0) break;
+    if (i > 0) {
+      const newline = Math.min(remaining, 1);
+      remaining -= newline;
+      if (newline < 1) break;
+    }
+    const marker = Math.min(remaining, 2);
+    remaining -= marker;
+    if (marker < 2) break;
+    const visible = reply.bullets[i].slice(0, Math.min(remaining, reply.bullets[i].length));
+    if (visible.length > 0) bullets.push(visible);
+    remaining -= visible.length;
+  }
+
+  return { title, body, bullets };
+}
+
+function renderInlineBold(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    nodes.push(
+      <strong key={`b-${match.index}`} className="luna-agent-message-strong">
+        {match[1]}
+      </strong>,
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : [text];
+}
+
+function AssistantMessageBody({
+  reply,
+  visibleChars,
+  showCaret,
+}: {
+  reply: AssistantReply;
+  visibleChars: number;
+  showCaret: boolean;
+}) {
+  const visible = sliceAssistantReply(reply, visibleChars);
+  const hasBullets = (visible.bullets?.length ?? 0) > 0;
+
+  return (
+    <article className="luna-agent-message">
+      {visible.title ? (
+        <h3 className="luna-agent-message-title">{visible.title}</h3>
+      ) : null}
+      {visible.body ? (
+        <p className="luna-agent-message-body">{renderInlineBold(visible.body)}</p>
+      ) : null}
+      {hasBullets ? (
+        <ul className="luna-agent-message-list">
+          {visible.bullets!.map((bullet, index) => (
+            <li key={index} className="luna-agent-message-list-item">
+              {renderInlineBold(bullet)}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {showCaret ? <span className="luna-agent-caret" aria-hidden /> : null}
+    </article>
+  );
 }
 
 function ThinkingDots() {
@@ -157,13 +354,23 @@ function MessagePipelineStatus({ phase }: { phase: AgentPhase }) {
   );
 }
 
+function getRootFontSizePx(): number {
+  return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+}
+
 export function LunaAgentChat({ onClose }: { onClose: () => void }) {
   const formId = useId();
   const typewriterRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const activeAssistantMessageIdRef = useRef<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const baseInputHeightPxRef = useRef<number | null>(null);
+  const baseFooterHeightPxRef = useRef<number | null>(null);
 
   const [draft, setDraft] = useState("");
+  const [footerBaseRem, setFooterBaseRem] = useState(0);
+  const [footerExtraRem, setFooterExtraRem] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [phase, setPhase] = useState<AgentPhase>("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -182,6 +389,60 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
+  const syncComposerHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (baseInputHeightPxRef.current === null) {
+      baseInputHeightPxRef.current = textarea.offsetHeight;
+    }
+
+    const baseHeightPx = baseInputHeightPxRef.current;
+    const rootFontSizePx = getRootFontSizePx();
+    const maxExtraPx = baseFooterHeightPxRef.current ?? baseHeightPx;
+    const maxHeightPx = baseHeightPx + maxExtraPx;
+
+    textarea.style.height = "auto";
+    const nextHeightPx = Math.min(
+      Math.max(textarea.scrollHeight, baseHeightPx),
+      maxHeightPx,
+    );
+    textarea.style.height = `${nextHeightPx}px`;
+  }, []);
+
+  useEffect(() => {
+    syncComposerHeight();
+  }, [draft, footerBaseRem, syncComposerHeight]);
+
+  useLayoutEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const syncFooterLayout = () => {
+      const rootFontSizePx = getRootFontSizePx();
+      const currentPx = footer.offsetHeight;
+
+      if (baseFooterHeightPxRef.current === null) {
+        baseFooterHeightPxRef.current = currentPx;
+        setFooterBaseRem(currentPx / rootFontSizePx);
+        setFooterExtraRem(0);
+        return;
+      }
+
+      const basePx = baseFooterHeightPxRef.current;
+      const extraPx = Math.min(Math.max(currentPx - basePx, 0), basePx);
+      setFooterBaseRem(basePx / rootFontSizePx);
+      setFooterExtraRem(extraPx / rootFontSizePx);
+    };
+
+    syncFooterLayout();
+
+    const observer = new ResizeObserver(syncFooterLayout);
+    observer.observe(footer);
+
+    return () => observer.disconnect();
+  }, []);
+
   const scrollMessagesToEnd = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ block: "end", behavior: "auto" });
   }, []);
@@ -192,43 +453,41 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
     }
   }, [messages, phase, scrollMessagesToEnd]);
 
-  const startTypewriter = useCallback(
-    (fullReply: string) => {
-      const assistantMessageId = `assistant-${Date.now()}`;
-      activeAssistantMessageIdRef.current = assistantMessageId;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: assistantMessageId,
-          role: "assistant",
-          text: "",
-        },
-      ]);
-      setPhase("typing");
-      let i = 0;
-      typewriterRef.current = setInterval(() => {
-        i += 1;
-        const nextText = fullReply.slice(0, i);
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === assistantMessageId
-              ? { ...message, text: nextText }
-              : message,
-          ),
-        );
-        if (i >= fullReply.length) {
-          if (typewriterRef.current) clearInterval(typewriterRef.current);
-          typewriterRef.current = null;
-          activeAssistantMessageIdRef.current = null;
-          setPhase("idle");
-        }
-      }, TYPEWRITER_MS_PER_CHAR);
-    },
-    [],
-  );
+  const startTypewriter = useCallback((fullReply: AssistantReply) => {
+    const assistantMessageId = `assistant-${Date.now()}`;
+    const totalChars = replyPlainTextLength(fullReply);
+    activeAssistantMessageIdRef.current = assistantMessageId;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        reply: fullReply,
+        visibleChars: 0,
+      },
+    ]);
+    setPhase("typing");
+    let i = 0;
+    typewriterRef.current = setInterval(() => {
+      i += 1;
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId && message.role === "assistant"
+            ? { ...message, visibleChars: i }
+            : message,
+        ),
+      );
+      if (i >= totalChars) {
+        if (typewriterRef.current) clearInterval(typewriterRef.current);
+        typewriterRef.current = null;
+        activeAssistantMessageIdRef.current = null;
+        setPhase("idle");
+      }
+    }, TYPEWRITER_MS_PER_CHAR);
+  }, []);
 
   const runResponsePipeline = useCallback(
-    (fullReply: string) => {
+    (fullReply: AssistantReply) => {
       clearTimers();
       setPhase("thinking");
 
@@ -306,7 +565,10 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       aria-label="Luna Agent"
       aria-modal="true"
       initial={false}
-      style={{ height: PANEL_HEIGHT }}
+      style={{
+        ["--luna-agent-footer-base-height" as string]: `${footerBaseRem}rem`,
+        ["--luna-agent-footer-extra" as string]: `${footerExtraRem}rem`,
+      }}
     >
       <header className="luna-agent-header">
         <nav className="luna-agent-header-menus" aria-label="Chat menus">
@@ -371,30 +633,38 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
           <div
             className="luna-agent-messages"
             style={{
-              height: MESSAGES_VIEWPORT_HEIGHT,
-              minHeight: MESSAGES_VIEWPORT_HEIGHT,
-              maxHeight: MESSAGES_VIEWPORT_HEIGHT,
+              height: "var(--luna-agent-messages-height)",
+              minHeight: "var(--luna-agent-messages-height)",
+              maxHeight: "var(--luna-agent-messages-height)",
             }}
           >
             <AnimatePresence initial={false}>
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  className={
-                    message.role === "user"
-                      ? "luna-agent-bubble luna-agent-bubble--user"
-                      : "luna-agent-bubble luna-agent-bubble--assistant"
-                  }
-                  {...bubbleEnterMotion}
-                >
-                  <p>
-                    {message.text}
-                    {phase === "typing" && message.id === activeAssistantMessageIdRef.current ? (
-                      <span className="luna-agent-caret" aria-hidden />
-                    ) : null}
-                  </p>
-                </motion.div>
-              ))}
+              {messages.map((message) =>
+                message.role === "user" ? (
+                  <motion.div
+                    key={message.id}
+                    className="luna-agent-bubble luna-agent-bubble--user"
+                    {...bubbleEnterMotion}
+                  >
+                    <p>{message.text}</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={message.id}
+                    className="luna-agent-bubble luna-agent-bubble--assistant"
+                    {...bubbleEnterMotion}
+                  >
+                    <AssistantMessageBody
+                      reply={message.reply}
+                      visibleChars={message.visibleChars}
+                      showCaret={
+                        phase === "typing" &&
+                        message.id === activeAssistantMessageIdRef.current
+                      }
+                    />
+                  </motion.div>
+                ),
+              )}
             </AnimatePresence>
 
             <MessagePipelineStatus phase={phase} />
@@ -402,26 +672,29 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
             <div ref={messagesEndRef} className="luna-agent-messages-anchor" aria-hidden />
           </div>
 
-          <footer className="luna-agent-footer">
+          <footer ref={footerRef} className="luna-agent-footer">
             <ThinkingFooterStatus phase={phase} />
             <form id={formId} className="luna-agent-composer" onSubmit={onSubmit}>
-              <textarea
-                className="luna-agent-input"
-                placeholder="Ask Anything"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={onKeyDown}
-                rows={3}
-                disabled={isComposerLocked}
-                aria-label="Message Luna Agent"
-                spellCheck={false}
-                autoCorrect="off"
-                autoComplete="off"
-                autoCapitalize="off"
-                data-gramm="false"
-                data-gramm_editor="false"
-                data-enable-grammarly="false"
-              />
+              <div className="luna-agent-input-wrap">
+                <textarea
+                  ref={textareaRef}
+                  className="luna-agent-input"
+                  placeholder="Ask Anything"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={onKeyDown}
+                  rows={3}
+                  disabled={isComposerLocked}
+                  aria-label="Message Luna Agent"
+                  spellCheck={false}
+                  autoCorrect="off"
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  data-gramm="false"
+                  data-gramm_editor="false"
+                  data-enable-grammarly="false"
+                />
+              </div>
               <div className="luna-agent-composer-bar-wrap">
                 <div className="luna-agent-composer-bar">
                   <div className="luna-agent-composer-left">
