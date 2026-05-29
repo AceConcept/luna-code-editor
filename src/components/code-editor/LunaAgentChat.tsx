@@ -447,10 +447,8 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
     messagesEndRef.current?.scrollIntoView({ block: "end", behavior: "auto" });
   }, []);
 
-  useEffect(() => {
-    if (phase === "typing") {
-      scrollMessagesToEnd();
-    }
+  useLayoutEffect(() => {
+    scrollMessagesToEnd();
   }, [messages, phase, scrollMessagesToEnd]);
 
   const startTypewriter = useCallback((fullReply: AssistantReply) => {

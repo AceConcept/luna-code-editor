@@ -2547,10 +2547,15 @@ code {
 .luna-agent-bubble--user p {
   margin: 0;
   font-size: 1rem; /* 16px */
+  line-height: 1.45;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .luna-agent-bubble--assistant {
@@ -2609,9 +2614,8 @@ code {
 }
 
 .luna-agent-messages-anchor {
-  height: 0;
   flex-shrink: 0;
-  overflow: hidden;
+  min-height: 2.5rem; /* 40px — scroll tail below last message/status */
   pointer-events: none;
 }
 
@@ -2665,6 +2669,9 @@ code {
 
 .luna-agent-status--message {
   flex-shrink: 0;
+  height: 5rem; /* 80px */
+  min-height: 5rem;
+  padding-top: 0.5rem; /* 8px */
   padding-left: 0;
 }
 
