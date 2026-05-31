@@ -46,8 +46,6 @@ const editorTabs = [
   },
 ] as const;
 
-const LUNA_AGENT_TAB_ICON = "/code-editor/aside-menu/CirclesThree.svg";
-
 const layoutBarIconsMain = [
   { src: "/code-editor/layout-bar/Browser.svg", label: "Editor area layout" },
   { src: "/code-editor/layout-bar/Layout.svg", label: "Panel layout" },
@@ -719,7 +717,6 @@ export function EditorWorkbench({
 }) {
   const p = benchClassPrefix;
   const [activeEditorTab, setActiveEditorTab] = useState<(typeof editorTabs)[number]["label"]>("route.ts");
-  const [lunaAgentOpen, setLunaAgentOpen] = useState(false);
   const [terminalInput, setTerminalInput] = useState("");
   const hasCodeWrapperHeader = Boolean(codeWrapperHeader);
   const splitPad =
@@ -848,23 +845,11 @@ export function EditorWorkbench({
             aria-label={mainPanel ? "Installed extensions" : "coding"}
             className={wb(p, "coding")}
             {...codingMode}
-            data-luna-agent-open={lunaAgentOpen ? "" : undefined}
           >
           {mainPanel ?? (
-          <div
-            className={
-              lunaAgentOpen
-                ? "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-visible"
-                : "relative flex min-h-0 min-w-0 flex-1 flex-col"
-            }
-          >
-          <div
-            className={
-              lunaAgentOpen
-                ? "relative z-[200] flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer [&_.luna-agent-input]:cursor-text"
-                : "flex h-[3.625rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer [&_.luna-agent-input]:cursor-text"
-            }
-          >
+          <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden">
+          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="flex h-[2.75rem] shrink-0 cursor-pointer items-stretch overflow-visible bg-[#171818] px-0 [&_*]:cursor-pointer [&_.luna-agent-input]:cursor-text">
             <div
               className="flex min-h-0 min-w-0 flex-1 items-stretch overflow-x-auto [&_*]:cursor-pointer"
               role="tablist"
@@ -881,7 +866,7 @@ export function EditorWorkbench({
                 }
               >
                 <div
-                  className="flex h-[3.625rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] pl-[1rem] pr-[0.75rem] bg-[unset] [background:unset]"
+                  className="flex h-[2.75rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] pl-[1rem] pr-[0.75rem] bg-[unset] [background:unset]"
                   onClick={() => setActiveEditorTab(tab.label)}
                 >
                   <button
@@ -891,8 +876,8 @@ export function EditorWorkbench({
                     onClick={() => setActiveEditorTab(tab.label)}
                     className={
                       isActive
-                        ? `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0 ${tab.accentClass}`
-                        : `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.25rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0 ${tab.mutedClass}`
+                        ? `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.125rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0 ${tab.accentClass}`
+                        : `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.125rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0 ${tab.mutedClass}`
                     }
                   >
                     <Image
@@ -934,42 +919,6 @@ export function EditorWorkbench({
               </div>
               );
             })}
-            </div>
-            <div
-              className={
-                lunaAgentOpen
-                  ? "relative z-50 ml-auto flex min-w-[10.5rem] shrink-0 flex-col rounded-t-[0.25rem] border border-transparent border-l-[#4A4A4A] bg-black transition-colors duration-150"
-                  : "relative z-50 ml-auto flex min-w-[10.5rem] shrink-0 flex-col rounded-t-[0.25rem] border border-transparent border-l-[#4A4A4A] bg-[#252525] transition-colors duration-150 hover:bg-[#343434]"
-              }
-            >
-              <button
-                type="button"
-                aria-label="Luna Agent"
-                aria-pressed={lunaAgentOpen}
-                onClick={() => setLunaAgentOpen((open) => !open)}
-                className={
-                  lunaAgentOpen
-                    ? "flex h-[3.625rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] overflow-hidden rounded-sm px-[1rem] text-left text-[1.25rem] font-[300] text-white outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0"
-                    : "flex h-[3.625rem] min-h-0 min-w-0 flex-1 cursor-pointer items-center gap-[0.5rem] overflow-hidden rounded-sm px-[1rem] text-left text-[1.25rem] font-[300] text-[#b3b3b3] outline-none ring-0 ring-offset-0 transition-none hover:text-[#cccccc] focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0"
-                }
-              >
-                <Image
-                  src={LUNA_AGENT_TAB_ICON}
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="h-[1.75rem] w-[1.75rem] shrink-0 cursor-pointer object-contain"
-                  draggable={false}
-                  unoptimized
-                />
-                <span className="min-w-0 cursor-pointer select-none truncate">Luna Agent</span>
-              </button>
-              {lunaAgentOpen ? (
-                <LunaAgentChat
-                  key="luna-agent-chat"
-                  onClose={() => setLunaAgentOpen(false)}
-                />
-              ) : null}
             </div>
           </div>
 
@@ -1145,6 +1094,8 @@ export function EditorWorkbench({
               </aside>
             </div>
           </div>
+          </div>
+          <LunaAgentChat key="luna-agent-chat" />
           </div>
           )}
           </div>

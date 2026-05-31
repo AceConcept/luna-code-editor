@@ -124,6 +124,9 @@ const TYPEWRITER_MS_PER_CHAR = 12;
 const CHAT_PLUS_ICON = "/chat/plus.svg";
 const CHAT_MIC_ICON = "/chat/microphone-02.svg";
 const CHAT_ENTER_ICON = "/chat/enter.svg";
+const CHAT_HEADER_MINUS_ICON = "/chat/Minus.svg";
+const CHAT_HEADER_BBOX_ICON = "/chat/BoundingBox.svg";
+const CHAT_HEADER_QUESTION_ICON = "/chat/Question.svg";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -358,7 +361,7 @@ function getRootFontSizePx(): number {
   return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 }
 
-export function LunaAgentChat({ onClose }: { onClose: () => void }) {
+export function LunaAgentChat() {
   const formId = useId();
   const typewriterRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const phaseTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -558,10 +561,9 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      className="luna-agent-panel"
-      role="dialog"
-      aria-label="Luna Agent"
-      aria-modal="true"
+      className="luna-agent-panel luna-agent-panel--docked"
+      role="complementary"
+      aria-label="LunaChat"
       initial={false}
       style={{
         ["--luna-agent-footer-base-height" as string]: `${footerBaseRem}rem`,
@@ -569,23 +571,14 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
       }}
     >
       <header className="luna-agent-header">
-        <nav className="luna-agent-header-menus" aria-label="Chat menus">
-          <span className="luna-agent-header-dot-wrap" aria-hidden>
-            <span className="luna-agent-header-dot" />
-          </span>
-          {(["File", "Edit", "Selection"] as const).map((item) => (
-            <button key={item} type="button" className="luna-agent-header-menu-btn">
-              {item}
-            </button>
-          ))}
-        </nav>
+        <span className="luna-agent-header-title">LunaChat</span>
         <div className="luna-agent-header-controls">
           <button type="button" aria-label="Minimize" className="luna-agent-win-btn">
             <Image
-              src="/code-editor/layout-bar/Minus.svg"
+              src={CHAT_HEADER_MINUS_ICON}
               alt=""
-              width={24}
-              height={24}
+              width={18}
+              height={18}
               className="luna-agent-win-btn-ico"
               draggable={false}
               unoptimized
@@ -593,26 +586,25 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
           </button>
           <button type="button" aria-label="Maximize" className="luna-agent-win-btn">
             <Image
-              src="/code-editor/layout-bar/Square.svg"
+              src={CHAT_HEADER_BBOX_ICON}
               alt=""
-              width={20}
-              height={20}
-              className="luna-agent-win-btn-ico luna-agent-win-btn-ico--maximize"
+              width={18}
+              height={18}
+              className="luna-agent-win-btn-ico"
               draggable={false}
               unoptimized
             />
           </button>
           <button
             type="button"
-            aria-label="Close Luna Agent"
-            className="luna-agent-win-btn luna-agent-win-btn--close"
-            onClick={onClose}
+            aria-label="Help"
+            className="luna-agent-win-btn"
           >
             <Image
-              src="/code-editor/terminal/Close.svg"
+              src={CHAT_HEADER_QUESTION_ICON}
               alt=""
-              width={24}
-              height={24}
+              width={18}
+              height={18}
               className="luna-agent-win-btn-ico"
               draggable={false}
               unoptimized
@@ -628,14 +620,7 @@ export function LunaAgentChat({ onClose }: { onClose: () => void }) {
         transition={chatBodyMotion.transition}
       >
         <div className="luna-agent-body">
-          <div
-            className="luna-agent-messages"
-            style={{
-              height: "var(--luna-agent-messages-height)",
-              minHeight: "var(--luna-agent-messages-height)",
-              maxHeight: "var(--luna-agent-messages-height)",
-            }}
-          >
+          <div className="luna-agent-messages">
             <AnimatePresence initial={false}>
               {messages.map((message) =>
                 message.role === "user" ? (

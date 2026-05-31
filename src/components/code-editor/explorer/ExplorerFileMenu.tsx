@@ -81,7 +81,7 @@ function FileTreeRow({
 }
 
 const fileTreeRowButtonBaseClass =
-  "flex h-[3rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.25rem] font-light leading-[1.6] text-[#BDBEBE] transition-colors hover:bg-[#4A4A4A] focus-visible:outline-none";
+  "flex h-[2.5rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.125rem] font-light leading-[1.6] text-[#BDBEBE] transition-colors hover:bg-[#4A4A4A] focus-visible:outline-none";
 
 const fileTreeRowContentClass =
   "flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem]";
@@ -153,7 +153,7 @@ export function ExplorerFileMenu() {
         className="hwb-explorer-file-menu-inner"
       >
         <motion.div
-          className="flex w-full items-center justify-between gap-[0.5rem] bg-transparent py-[1rem] pl-0 text-[1.25rem] font-light uppercase tracking-wide text-[#BDBEBE]"
+          className="flex w-full items-center justify-between gap-[0.5rem] bg-transparent py-[1rem] pl-0 text-[1.125rem] font-light uppercase tracking-wide text-[#BDBEBE]"
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, ease: EASE_OUT }}
@@ -186,7 +186,7 @@ export function ExplorerFileMenu() {
             />
           </motion.button>
         </motion.div>
-        <div className="min-h-0 flex-1 overflow-auto bg-transparent pb-[1rem] text-[1.25rem] font-light leading-[1.6] text-[#BDBEBE]">
+        <div className="min-h-0 flex-1 overflow-auto bg-transparent pb-[1rem] text-[1.125rem] font-light leading-[1.6] text-[#BDBEBE]">
           <motion.button
             type="button"
             className={`${fileTreeRowButtonBaseClass} pl-[0.75rem]`}
