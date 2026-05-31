@@ -127,6 +127,7 @@ const CHAT_ENTER_ICON = "/chat/enter.svg";
 const CHAT_HEADER_MINUS_ICON = "/chat/Minus.svg";
 const CHAT_HEADER_BBOX_ICON = "/chat/BoundingBox.svg";
 const CHAT_HEADER_QUESTION_ICON = "/chat/Question.svg";
+const CHAT_EMPTY_STATE_ICON = "/chat/Chat-Default.svg";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -148,6 +149,13 @@ const statusMotion = {
   animate: { y: 0 },
   exit: { y: -4 },
   transition: { duration: 0.22, ease: EASE_OUT },
+};
+
+const emptyStateMotion = {
+  initial: { opacity: 1 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.32, ease: EASE_OUT },
 };
 
 type AgentPhase = "idle" | "thinking" | "processing" | "preparing" | "typing";
@@ -621,6 +629,27 @@ export function LunaAgentChat() {
       >
         <div className="luna-agent-body">
           <div className="luna-agent-messages">
+            <AnimatePresence>
+              {messages.length === 0 ? (
+                <motion.div
+                  key="luna-chat-empty-state"
+                  className="luna-agent-messages-empty"
+                  aria-hidden
+                  {...emptyStateMotion}
+                >
+                  <Image
+                    src={CHAT_EMPTY_STATE_ICON}
+                    alt=""
+                    width={217}
+                    height={217}
+                    className="luna-agent-messages-empty-ico"
+                    draggable={false}
+                    unoptimized
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+
             <AnimatePresence initial={false}>
               {messages.map((message) =>
                 message.role === "user" ? (

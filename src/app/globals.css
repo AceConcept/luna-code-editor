@@ -2468,6 +2468,22 @@ code {
   cursor: pointer;
 }
 
+.luna-agent-messages-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.luna-agent-messages-empty-ico {
+  width: min(13.5625rem, calc(100% - 2rem)); /* 217px max */
+  height: auto;
+  object-fit: contain;
+}
+
 .luna-agent-bubble {
   max-width: 100%;
   border-radius: 1rem;
