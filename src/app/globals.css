@@ -865,6 +865,14 @@ code {
   background: transparent;
 }
 
+.hwb-explorer-file-menu button img {
+  transition: filter 0.15s ease;
+}
+
+.hwb-explorer-file-menu button:hover img {
+  filter: brightness(0) invert(1);
+}
+
 /* Home editor — route.ts mock scroll area (only mounted when mainPanel is unset) */
 .hwb-editor-scroll-area {
   background-color: #121212;

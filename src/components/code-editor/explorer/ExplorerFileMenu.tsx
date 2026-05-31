@@ -81,7 +81,7 @@ function FileTreeRow({
 }
 
 const fileTreeRowButtonBaseClass =
-  "flex h-[2.5rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.125rem] font-light leading-[1.6] text-[#BDBEBE] transition-colors hover:bg-[#4A4A4A] focus-visible:outline-none";
+  "flex h-[2.5rem] w-full shrink-0 items-center border-0 bg-transparent py-0 pr-0 text-left text-[1.125rem] font-light leading-[1.6] text-[#BDBEBE] transition-colors hover:bg-[#343434] hover:text-white focus-visible:outline-none";
 
 const fileTreeRowContentClass =
   "flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem]";
