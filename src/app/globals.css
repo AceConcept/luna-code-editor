@@ -249,6 +249,8 @@ code {
   flex-direction: column;
   transform-origin: center center;
   will-change: transform;
+  /* After scale(), hairlines stay >= 0.8px (0.05rem @ 16px) on screen */
+  --svp-hairline: max(0.0625rem, calc(0.05rem / var(--svp-scale, 1)));
 }
 
 /* ─── CodeEditorExtensionsMock — editor chrome strip above extensions ─── */
@@ -2347,7 +2349,7 @@ code {
   min-height: 0;
   gap: 0;
   border: 0;
-  border-left: 1px solid #4a4a4a;
+  border-left: var(--svp-hairline, 0.0625rem) solid #4a4a4a;
   box-shadow: none;
 }
 
@@ -2369,7 +2371,7 @@ code {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid #4a4a4a;
+  border: var(--svp-hairline, 0.0625rem) solid #4a4a4a;
   border-radius: 0.5rem 0 0 0.5rem;
   background-color: #101010;
   color: rgba(74, 74, 74, 1);

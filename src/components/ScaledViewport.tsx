@@ -33,6 +33,7 @@ export function ScaledViewport({ children }: { children: React.ReactNode }) {
           width: "160rem",
           height: "90rem",
           transform: `translate(-50%, -50%) scale(${scale})`,
+          ["--svp-scale" as string]: String(scale),
         }}
       >
         {children}
