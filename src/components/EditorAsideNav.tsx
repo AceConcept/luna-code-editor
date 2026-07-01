@@ -8,23 +8,23 @@ import type { EditorWorkbenchBenchPrefix } from "@/components/code-editor/Editor
 const asideItems = [
   {
     href: "/",
-    label: "Agents",
+    label: "Code Editor",
     src: "/code-editor/aside-menu/CirclesThree.svg",
   },
   {
     href: null as string | null,
-    label: "Extensions",
+    label: "Files",
     src: "/code-editor/aside-menu/FileText.svg",
+  },
+  {
+    href: null as string | null,
+    label: "Extensions",
+    src: "/code-editor/aside-menu/GitBranch.svg",
   },
   {
     href: "/extensions",
     label: "Rules",
     src: "/code-editor/aside-menu/Gavel.svg",
-  },
-  {
-    href: null as string | null,
-    label: "Git graph",
-    src: "/code-editor/aside-menu/GitBranch.svg",
   },
   {
     href: null as string | null,
@@ -46,7 +46,7 @@ export function EditorAsideNav({
 }) {
   const pathname = usePathname();
   const p = benchClassPrefix;
-  const asideBtn = `${p}-aside-btn`;
+  const asideBtn = `${p}-aside-btn aside-btn-tooltip`;
   const asideBtnActive = `${p}-aside-btn--active`;
   const asideImg = `${p}-aside-btn-img`;
 
@@ -76,6 +76,7 @@ export function EditorAsideNav({
               key={item.href}
               href={item.href}
               aria-label={item.label}
+              data-tooltip={item.label}
               aria-current={isActive ? "page" : undefined}
               className={className}
             >
@@ -89,6 +90,7 @@ export function EditorAsideNav({
             key={item.src}
             type="button"
             aria-label={item.label}
+            data-tooltip={item.label}
             aria-current={isActive ? "true" : undefined}
             className={className}
           >
