@@ -1,9 +1,24 @@
 "use client";
 
-import { Fragment, useMemo, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { EditorAsideNav } from "@/components/EditorAsideNav";
 import { LunaAgentChat } from "@/components/code-editor/LunaAgentChat";
+
+const MAIN_COLUMN_FADE_MS = 200;
+const mainColumnFadeTransition = {
+  duration: MAIN_COLUMN_FADE_MS / 1000,
+  ease: "linear" as const,
+};
 
 /** VSCode-like tokens for the route.ts mock */
 const hl = {
@@ -24,25 +39,21 @@ const editorTabs = [
     label: "globals.css",
     iconSrc: "/code-editor/folder-menu/code-icons/Dev%20Icons-5.svg",
     mutedClass: "text-[#d7ba7d] hover:text-[#e8d4a8]",
-    accentClass: "text-[#d7ba7d]",
   },
   {
     label: "WordModal.ts",
     iconSrc: "/code-editor/folder-menu/code-icons/Dev%20Icons-6.svg",
     mutedClass: "text-[#b3b3b3] hover:text-[#cccccc]",
-    accentClass: "text-[#4FC1FF]",
   },
   {
     label: "route.ts",
     iconSrc: "/code-editor/folder-menu/code-icons/Dev%20Icons-3.svg",
     mutedClass: "text-[#b3b3b3] hover:text-[#cccccc]",
-    accentClass: "text-[#4FC1FF]",
   },
   {
     label: "page.tsx",
     iconSrc: "/code-editor/folder-menu/code-icons/Dev%20Icons-6.svg",
     mutedClass: "text-[#b3b3b3] hover:text-[#cccccc]",
-    accentClass: "text-[#C586C0]",
   },
 ] as const;
 
@@ -716,9 +727,24 @@ export function EditorWorkbench({
   workspaceBackgroundImageSrc?: string;
 }) {
   const p = benchClassPrefix;
+  const router = useRouter();
+  const pendingHrefRef = useRef<string | null>(null);
+  const [columnVisible, setColumnVisible] = useState(true);
   const [activeEditorTab, setActiveEditorTab] = useState<(typeof editorTabs)[number]["label"]>("route.ts");
   const [terminalInput, setTerminalInput] = useState("");
   const hasCodeWrapperHeader = Boolean(codeWrapperHeader);
+
+  const navigateWithFade = useCallback((href: string) => {
+    pendingHrefRef.current = href;
+    setColumnVisible(false);
+  }, []);
+
+  const onMainColumnAnimationComplete = useCallback(() => {
+    const href = pendingHrefRef.current;
+    if (!href) return;
+    pendingHrefRef.current = null;
+    router.push(href);
+  }, [router]);
   const splitPad =
     p === "hwb"
       ? { "data-hwb-split-pad": hasCodeWrapperHeader ? "sm" : "md" }
@@ -825,10 +851,19 @@ export function EditorWorkbench({
           aria-label="aside-menu"
           className={wb(p, "activity-aside")}
         >
-          <EditorAsideNav benchClassPrefix={p} />
+          <EditorAsideNav
+            benchClassPrefix={p}
+            onNavigate={navigateWithFade}
+          />
         </aside>
 
-        <div className={wb(p, "main-column")}>
+        <motion.div
+          className={wb(p, "main-column")}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: columnVisible ? 1 : 0 }}
+          transition={mainColumnFadeTransition}
+          onAnimationComplete={onMainColumnAnimationComplete}
+        >
         <div
           id="code-wrapper"
           role="group"
@@ -876,7 +911,7 @@ export function EditorWorkbench({
                     onClick={() => setActiveEditorTab(tab.label)}
                     className={
                       isActive
-                        ? `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.125rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0 ${tab.accentClass}`
+                        ? "flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.125rem] font-[300] text-white outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-0"
                         : `flex min-h-0 min-w-0 flex-1 items-center gap-[0.5rem] overflow-hidden rounded-sm text-left text-[1.125rem] font-[300] outline-none ring-0 ring-offset-0 transition-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-0 ${tab.mutedClass}`
                     }
                   >
@@ -1101,7 +1136,7 @@ export function EditorWorkbench({
           </div>
           </div>
         </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

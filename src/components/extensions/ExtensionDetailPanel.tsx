@@ -54,7 +54,7 @@ function IconBtn({ label, src }: { label: string; src: string }) {
   );
 }
 
-const DOWNLOAD_MS = 2800;
+const DOWNLOAD_MS = 1000;
 const HOLD_AT_100_MS = 400;
 
 /** Side panel mock — width 692px (43.25rem @ 16px root), height 1122px (70.125rem). */

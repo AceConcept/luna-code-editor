@@ -17,12 +17,12 @@ const asideItems = [
     src: "/code-editor/aside-menu/FileText.svg",
   },
   {
-    href: null as string | null,
+    href: "/extensions",
     label: "Extensions",
     src: "/code-editor/aside-menu/GitBranch.svg",
   },
   {
-    href: "/extensions",
+    href: null as string | null,
     label: "Rules",
     src: "/code-editor/aside-menu/Gavel.svg",
   },
@@ -41,8 +41,10 @@ function itemIsActive(pathname: string, href: string) {
 
 export function EditorAsideNav({
   benchClassPrefix,
+  onNavigate,
 }: {
   benchClassPrefix: EditorWorkbenchBenchPrefix;
+  onNavigate?: (href: string) => void;
 }) {
   const pathname = usePathname();
   const p = benchClassPrefix;
@@ -79,6 +81,11 @@ export function EditorAsideNav({
               data-tooltip={item.label}
               aria-current={isActive ? "page" : undefined}
               className={className}
+              onClick={(e) => {
+                if (!onNavigate || isActive) return;
+                e.preventDefault();
+                onNavigate(item.href);
+              }}
             >
               {img}
             </Link>
