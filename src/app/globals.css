@@ -13,6 +13,14 @@ html {
 body {
   height: 100%;
   overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.hwb-editor-scroll-area,
+.luna-agent-input {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 @theme inline {
