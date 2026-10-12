@@ -73,10 +73,11 @@ export function EditorAsideNav({
         );
 
         if (item.href !== null) {
+          const href = item.href;
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               aria-label={item.label}
               data-tooltip={item.label}
               aria-current={isActive ? "page" : undefined}
@@ -84,7 +85,7 @@ export function EditorAsideNav({
               onClick={(e) => {
                 if (!onNavigate || isActive) return;
                 e.preventDefault();
-                onNavigate(item.href);
+                onNavigate(href);
               }}
             >
               {img}
